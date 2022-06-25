@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "EngineMinimal.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Fountain.generated.h"
@@ -23,4 +24,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* Body;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* Water;
+
+	UPROPERTY(VisibleAnywhere)
+	UPointLightComponent* Light;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* Splash;
 };
