@@ -5,6 +5,7 @@
 
 UABAnimInstance::UABAnimInstance()
 	: CurrentPawnSpeed{0.0f}
+	, IsInAir(false)
 {
 }
 
@@ -16,5 +17,10 @@ void UABAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (::IsValid(Pawn))
 	{
 		CurrentPawnSpeed = Pawn->GetVelocity().Size();
+		auto Character = Cast<ACharacter>(Pawn);
+		if (Character)
+		{
+			IsInAir = Character->GetMovementComponent()->IsFalling();
+		}
 	}
 }
