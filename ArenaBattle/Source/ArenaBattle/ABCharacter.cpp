@@ -2,6 +2,8 @@
 
 
 #include "ABCharacter.h"
+#include "ABAnimInstance.h"
+
 
 // Sets default values
 AABCharacter::AABCharacter()
@@ -112,6 +114,11 @@ void AABCharacter::Tick(float DeltaTime)
 	}
 }
 
+void AABCharacter::PostInitializeComponents()
+{
+
+}
+
 // Called to bind functionality to input
 void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -119,6 +126,8 @@ void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAction(TEXT("ViewChange"), EInputEvent::IE_Pressed, this, &AABCharacter::ViewChange);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &AABCharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AABCharacter::Attack);
+
 
 	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AABCharacter::UpDown);
 	PlayerInputComponent->BindAxis(TEXT("LeftRight"), this, &AABCharacter::LeftRight);
@@ -190,4 +199,18 @@ void AABCharacter::ViewChange()
 		GetController()->SetControlRotation(SpringArm->GetRelativeRotation());
 		SetControlMode(EControlMode::GTA);
 	}
+}
+
+void AABCharacter::Attack()
+{
+	auto AnimInstance = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
+
+	if (AnimInstance)
+	{
+		AnimInstance->PlayAttackMontage();
+	}
+}
+
+void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
 }
