@@ -7,6 +7,9 @@
 #include "ABCharacter.generated.h"
 
 
+class UABAnimInstance;
+
+
 UCLASS()
 class ARENABATTLE_API AABCharacter : public ACharacter
 {
@@ -28,6 +31,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
+	virtual void PostInitializeComponents() override;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -41,6 +46,9 @@ private:
 	void Turn(float NewAxisValue);
 	void ViewChange();
 	void Attack();
+
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// variables
@@ -57,4 +65,10 @@ protected:
 	FRotator ArmRotationTo;
 	float ArmLengthSpeed;
 	float ArmRotationSpeed;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, meta=(AllowPrivateAccess=true))
+	bool IsAttacking;
+
+	UPROPERTY()
+	UABAnimInstance* ABAnim;
 };

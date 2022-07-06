@@ -12,6 +12,7 @@ AABCharacter::AABCharacter()
 	, ArmRotationTo(FRotator::ZeroRotator)
 	, ArmLengthSpeed(3.0f)
 	, ArmRotationSpeed(10.0f)
+	, IsAttacking(false)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -143,6 +144,16 @@ void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 }
 
 
+void AABCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	ABAnim = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
+	ABCHECK(nullptr != ABAnim);
+	ABAnim->OnMontageEnded.AddDynamic(this, &AABCharacter::OnAttackMontageEnded); // 애니메이션 몽타주 재생이 끝나면 호출되는 콜백함수.
+}
+
+
 void AABCharacter::UpDown(float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
@@ -219,10 +230,19 @@ void AABCharacter::ViewChange()
 /// 공격.
 void AABCharacter::Attack()
 {
-	auto AnimInstance = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
-
-	if(::IsValid(AnimInstance))
+	if(IsAttacking == true)
 	{
-		AnimInstance->PlayAttackMontage();
+		return;
 	}
+	else
+	{
+		ABAnim->PlayAttackMontage();
+		IsAttacking = true;
+	}	
+}
+
+void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	ABCHECK(IsAttacking);
+	IsAttacking = false;
 }
