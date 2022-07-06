@@ -6,6 +6,12 @@
 #include "Animation/AnimInstance.h"
 #include "ABAnimInstance.generated.h"
 
+
+DECLARE_MULTICAST_DELEGATE(FOnNextAttackCheckDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAttackHitCheckDelegate);
+
+
+
 /**
  * 
  */
@@ -16,16 +22,26 @@ class ARENABATTLE_API UABAnimInstance : public UAnimInstance
 
 public:
 	UABAnimInstance();
-
+	
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	void PlayAttackMontage();
+	void JumpToAttackMontageSection(int32 NewSection);
+
+	FOnNextAttackCheckDelegate OnNextAttackCheck;
+	FOnAttackHitCheckDelegate OnAttackHitCheck;
 	
 protected:
 private:
+	UFUNCTION()
+	void AnimNotify_AttackHitCheck();
+	UFUNCTION()
+	void AnimNotify_NextAttackCheck();
+
+	FName GetAttackMontageSectionName(int32 Section);
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// variables
-	protected:
+ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Pawn, Meta=(AllowPrivateAccess=true))
 	float CurrentPawnSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Pawn, Meta=(AllowPrivateAccess=true))

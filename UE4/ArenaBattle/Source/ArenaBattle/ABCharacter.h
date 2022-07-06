@@ -49,6 +49,9 @@ private:
 
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	void AttackStartComboState();
+	void AttackEndComboState();
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// variables
@@ -71,4 +74,13 @@ protected:
 
 	UPROPERTY()
 	UABAnimInstance* ABAnim;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Attack, meta=(AllowPrivateAccess=true))
+	bool CanNextCombo;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Attack, meta=(AllowPrivateAccess=true))
+	bool IsComboInputOn;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Attack, meta=(AllowPrivateAccess=true))
+	int32 CurrentCombo;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Attack, meta=(AllowPrivateAccess=true))
+	int32 MaxCombo;
 };

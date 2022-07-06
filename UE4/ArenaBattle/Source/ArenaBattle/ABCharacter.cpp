@@ -13,6 +13,7 @@ AABCharacter::AABCharacter()
 	, ArmLengthSpeed(3.0f)
 	, ArmRotationSpeed(10.0f)
 	, IsAttacking(false)
+	, MaxCombo(4)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -46,6 +47,8 @@ AABCharacter::AABCharacter()
 
 	// 점프 value
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
+
+	AttackEndComboState();
 }
 
 
@@ -151,6 +154,18 @@ void AABCharacter::PostInitializeComponents()
 	ABAnim = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
 	ABCHECK(nullptr != ABAnim);
 	ABAnim->OnMontageEnded.AddDynamic(this, &AABCharacter::OnAttackMontageEnded); // 애니메이션 몽타주 재생이 끝나면 호출되는 콜백함수.
+
+	ABAnim->OnNextAttackCheck.AddLambda([this]()->void
+	{
+		ABLOG(Warning, TEXT("OnNextAttackCheck"));
+		CanNextCombo = false;
+
+		if(IsComboInputOn)
+		{
+			AttackStartComboState();
+			ABAnim->JumpToAttackMontageSection(CurrentCombo);
+		}
+	});
 }
 
 
@@ -230,19 +245,46 @@ void AABCharacter::ViewChange()
 /// 공격.
 void AABCharacter::Attack()
 {
-	if(IsAttacking == true)
+	if(IsAttacking)
 	{
-		return;
+		ABCHECK(FMath::IsWithinInclusive<int32>(CurrentCombo, 1, MaxCombo));
+
+		if(CanNextCombo)
+		{
+			IsComboInputOn = true;
+		}
 	}
 	else
 	{
+		ABCHECK(CurrentCombo == 0);
+		AttackStartComboState();
 		ABAnim->PlayAttackMontage();
+		ABAnim->JumpToAttackMontageSection(CurrentCombo);
 		IsAttacking = true;
-	}	
+	}
 }
 
 void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	ABCHECK(IsAttacking);
+	ABCHECK(CurrentCombo > 0);
 	IsAttacking = false;
+	AttackEndComboState();
+}
+
+
+void AABCharacter::AttackStartComboState()
+{
+	CanNextCombo = true;
+	IsComboInputOn = false;
+	ABCHECK(FMath::IsWithinInclusive<int32>(CurrentCombo, 0, MaxCombo - 1));
+	CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1 , MaxCombo);
+}
+
+
+void AABCharacter::AttackEndComboState()
+{
+	IsComboInputOn = false;
+	CanNextCombo = false;
+	CurrentCombo = 0;
 }
