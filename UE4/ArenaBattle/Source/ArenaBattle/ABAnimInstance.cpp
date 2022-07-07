@@ -6,6 +6,7 @@
 UABAnimInstance::UABAnimInstance()
 	: CurrentPawnSpeed(0.0f)
 	, IsInAir(false)
+	, IsDead(false)
 {
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> ATTACK_MONTAGE(TEXT("AnimMontage'/Game/Book/Animations/SK_Mannequin_Skeleton_Montage.SK_Mannequin_Skeleton_Montage'"));
 	if(ATTACK_MONTAGE.Succeeded())
@@ -14,6 +15,7 @@ UABAnimInstance::UABAnimInstance()
 	}
 }
 
+
 void UABAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
@@ -21,26 +23,36 @@ void UABAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	auto Pawn = TryGetPawnOwner();
 	if(::IsValid(Pawn))
 	{
-		// About Run,Idle
-		CurrentPawnSpeed = Pawn->GetVelocity().Size();
-
-		// About Jump
-		auto Character = Cast<ACharacter>(Pawn);
-		if(Character)
+		if(IsDead == false)
 		{
-			IsInAir = Character->GetMovementComponent()->IsFalling();
+			// About Run,Idle
+			CurrentPawnSpeed = Pawn->GetVelocity().Size();
+
+			// About Jump
+			auto Character = Cast<ACharacter>(Pawn);
+			if(Character)
+			{
+				IsInAir = Character->GetMovementComponent()->IsFalling();
+			}
+		}
+		else
+		{
+			// nothing. 죽었음.
 		}
 	}
 }
 
+
 void UABAnimInstance::PlayAttackMontage()
 {
+	ABCHECK(this->IsDead == false);
 	Montage_Play(AttackMontage, 1.0f);
 }
 
 
 void UABAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
+	ABCHECK(this->IsDead == false);
 	ABCHECK(Montage_IsPlaying(AttackMontage));
 	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), AttackMontage);
 }
