@@ -66,6 +66,9 @@ protected:
 	USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, Category=Weapon)
+	USkeletalMeshComponent* Weapon;
+
 
 	float ArmLengthTo;
 	FRotator ArmRotationTo;
