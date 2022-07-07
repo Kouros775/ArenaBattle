@@ -46,7 +46,8 @@ private:
 	void Turn(float NewAxisValue);
 	void ViewChange();
 	void Attack();
-
+	void AttackCheck();
+	
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
@@ -83,4 +84,12 @@ protected:
 	int32 CurrentCombo;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Attack, meta=(AllowPrivateAccess=true))
 	int32 MaxCombo;
+	
+	
+	// >> Collsion Check Debug variable
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, meta=(AllowPrivateAccess=true))
+	float AttackRange;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, meta=(AllowPrivateAccess=true))
+	float AttackRadius;
+	// << Collsion Check Debug variable
 };
