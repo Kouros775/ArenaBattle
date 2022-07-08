@@ -9,7 +9,7 @@
 
 class UABAnimInstance;
 class AABWeapon;
-
+class UABCharacterStartComponent;
 
 UCLASS()
 class ARENABATTLE_API AABCharacter : public ACharacter
@@ -101,4 +101,9 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, meta=(AllowPrivateAccess=true))
 	float AttackRadius;
 	// << Collsion Check Debug variable
+
+	// >> Stat
+	UPROPERTY(VisibleAnywhere, Category=Stat)
+	UABCharacterStartComponent* CharacterStat;
+	// << Stat
 };
