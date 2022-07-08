@@ -61,13 +61,6 @@ AABCharacter::AABCharacter()
 void AABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	const FName WeaponSocket(TEXT("hand_rSocket"));
-	const auto CurWeapon = GetWorld()->SpawnActor<AABWeapon>(FVector::ZeroVector, FRotator::ZeroRotator);
-	if(CurWeapon)
-	{
-		CurWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocket);
-	}
 }
 
 
@@ -208,7 +201,38 @@ float AABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 }
 
 
-void AABCharacter::UpDown(float NewAxisValue)
+/**
+ * @brief 무기를 장착할 수 있는지에 대한 여부 반환
+ * @return 무기장착가능 여부 true/false
+ */
+bool AABCharacter::CanSetWeapon()
+{
+	return (nullptr == CurrentWeapon);
+}
+
+
+/**
+ * @brief 캐릭터에 무기를 장착한다.
+ * @param NewWeapon 장착하는 무기 
+ */
+void AABCharacter::SetWeapon(AABWeapon* NewWeapon)
+{
+	ABCHECK(nullptr != NewWeapon && nullptr == CurrentWeapon);
+	FName WeaponSocket(TEXT("hand_rSocket"));
+	if(NewWeapon)
+	{
+		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocket);
+		NewWeapon->SetOwner(this);
+		CurrentWeapon = NewWeapon;
+	}
+}
+
+
+/**
+ * @brief 모델의 Y축방향으로 이동
+ * @param NewAxisValue 이동량
+ */
+void AABCharacter::UpDown(const float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -221,6 +245,10 @@ void AABCharacter::UpDown(float NewAxisValue)
 }
 
 
+/**
+ * @brief 모델의 X축방향으로 이동
+ * @param NewAxisValue 이동량
+ */
 void AABCharacter::LeftRight(float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
@@ -234,8 +262,10 @@ void AABCharacter::LeftRight(float NewAxisValue)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// 모델의 X축을 기준으로 모델을 회전.
+/**
+ * @brief 모델의 X축 회전 (모델의 Y축 방향)
+ * @param NewAxisValue 이동량
+ */
 void AABCharacter::LookUp(float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)

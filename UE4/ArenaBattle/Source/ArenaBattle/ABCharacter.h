@@ -8,6 +8,7 @@
 
 
 class UABAnimInstance;
+class AABWeapon;
 
 
 UCLASS()
@@ -35,6 +36,9 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	bool CanSetWeapon();
+	void SetWeapon(AABWeapon* NewWeapon);
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -42,7 +46,7 @@ protected:
 	void SetControlMode(const EControlMode& ControlMode);
 
 private:
-	void UpDown(float NewAxisValue);
+	void UpDown(const float NewAxisValue);
 	void LeftRight(float NewAxisValue);
 	void LookUp(float NewAxisValue);
 	void Turn(float NewAxisValue);
@@ -67,7 +71,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	UCameraComponent* Camera;
 	UPROPERTY(VisibleAnywhere, Category=Weapon)
-	USkeletalMeshComponent* Weapon;
+	AABWeapon* CurrentWeapon;
 
 
 	float ArmLengthTo;
