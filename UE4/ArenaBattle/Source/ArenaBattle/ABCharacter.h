@@ -3,6 +3,7 @@
 #pragma once
 
 #include "ArenaBattle.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
 #include "ABCharacter.generated.h"
 
@@ -72,7 +73,8 @@ protected:
 	UCameraComponent* Camera;
 	UPROPERTY(VisibleAnywhere, Category=Weapon)
 	AABWeapon* CurrentWeapon;
-
+	UPROPERTY(VisibleAnywhere, Category=UI)
+	UWidgetComponent* HPBarWidget;
 
 	float ArmLengthTo;
 	FRotator ArmRotationTo;

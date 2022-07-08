@@ -33,7 +33,7 @@ void UABCharacterStartComponent::SetNewLevel(const int32& NewLevel)
 	if(CurrentStatData)
 	{
 		Level = NewLevel;
-		CurrentHP = CurrentStatData->MaxHP;
+		SetHP(CurrentStatData->MaxHP);
 	}
 	else
 	{
@@ -49,15 +49,7 @@ void UABCharacterStartComponent::SetNewLevel(const int32& NewLevel)
 void UABCharacterStartComponent::SetDamage(const float& NewDamage)
 {
 	ABCHECK(CurrentStatData);
-	CurrentHP = FMath::Clamp<float>(CurrentHP - NewDamage, 0.0f, CurrentStatData->MaxHP);
-	if(CurrentHP <= FLT_EPSILON)
-	{
-		OnHPIsZero.Broadcast();
-	}
-	else
-	{
-		// nothing. 살아있음.
-	}
+	SetHP(FMath::Clamp<float>(CurrentHP - NewDamage, 0.0f, CurrentStatData->MaxHP));
 }
 
 
@@ -69,6 +61,34 @@ float UABCharacterStartComponent::GetAttack() const
 {
 	ABCHECK(CurrentStatData, 0.0f);
 	return CurrentStatData->Attack;
+}
+
+
+/**
+ * @brief HP를 설정하고, 특정값 이하이면 죽었음을 알림.
+ * @param NewHP 설정할 HP 
+ */
+void UABCharacterStartComponent::SetHP(const float& NewHP)
+{
+	CurrentHP = NewHP;
+	OnHPChanged.Broadcast();
+	if(CurrentHP < KINDA_SMALL_NUMBER)
+	{
+		CurrentHP = 0.0f;
+		OnHPIsZero.Broadcast();
+	}
+}
+
+
+/**
+ * @brief 현재의 HP의 퍼센트를 반환 
+ * @return 0~1로 정규화된 값
+ */
+float UABCharacterStartComponent::GetHPRatio() const
+{
+	ABCHECK(CurrentStatData, 0.0f);
+
+	return (CurrentStatData->MaxHP < KINDA_SMALL_NUMBER) ? 0.0f : (CurrentHP / CurrentStatData->MaxHP);
 }
 
 

@@ -11,6 +11,7 @@ struct FABCharacterData;
 
 
 DECLARE_MULTICAST_DELEGATE(FOnHPIsZeroDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnHPChangedDelegate);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -27,6 +28,11 @@ public:
 	float GetAttack() const;
 	
 	FOnHPIsZeroDelegate OnHPIsZero;
+
+	void SetHP(const float& NewHP);
+	float GetHPRatio() const;
+
+	FOnHPChangedDelegate OnHPChanged;
 	
 protected:
 	// Called when the game starts
