@@ -14,10 +14,13 @@ AABItemBox::AABItemBox()
 
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("TRIGGER"));
 	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BOX"));
-
+	Effect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("EFFECT"));
+	
 	RootComponent = Trigger;
 	Box->SetupAttachment(Trigger);
+	Effect->SetupAttachment(Trigger);
 
+	
 	Trigger->SetBoxExtent(FVector(40.0f, 42.0f, 30.0f));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SK_BOX(TEXT("StaticMesh'/Game/InfinityBladeGrassLands/Environments/Breakables/StaticMesh/Box/SM_Env_Breakables_Box1.SM_Env_Breakables_Box1'")); 
 	if(SK_BOX.Succeeded())
@@ -27,6 +30,15 @@ AABItemBox::AABItemBox()
 	Box->SetRelativeLocation(FVector(0.0f, -3.5f, -30.0f));
 
 
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> P_CHESTOPEN(TEXT("ParticleSystem'/Game/InfinityBladeGrassLands/Effects/FX_Treasure/Chest/P_TreasureChest_Open_Mesh.P_TreasureChest_Open_Mesh'"));
+	if(P_CHESTOPEN.Succeeded())
+	{
+		Effect->SetTemplate(P_CHESTOPEN.Object);
+		Effect->bAutoActivate = false;
+	}
+
+
+	
 	Trigger->SetCollisionProfileName(TEXT("ItemBox"));
 	Box->SetCollisionProfileName(TEXT("NoCollision"));
 
@@ -60,13 +72,27 @@ void AABItemBox::OnCharacterOverLap(UPrimitiveComponent* OverlappedComp, AActor*
 
 	if(ABCharacter && WeaponItemClass)
 	{
-		const auto NewWeapon = GetWorld()->SpawnActor<AABWeapon>(WeaponItemClass, FVector::ZeroVector, FRotator::ZeroRotator);
-		ABCharacter->SetWeapon(NewWeapon);
+		if(ABCharacter->CanSetWeapon() == true)
+		{
+			const auto NewWeapon = GetWorld()->SpawnActor<AABWeapon>(WeaponItemClass, FVector::ZeroVector, FRotator::ZeroRotator);
+			ABCharacter->SetWeapon(NewWeapon);
+
+			Effect->Activate(true);
+			Box->SetHiddenInGame(true, true);
+			SetActorEnableCollision(false);
+			Effect->OnSystemFinished.AddDynamic(this, &AABItemBox::OnEffectFinished);
+		}
 	}
 	else
 	{
 		ABLOG(Warning, TEXT("%s can't equip weapon currently"), *ABCharacter->GetName());
 	}
+}
+
+
+void AABItemBox::OnEffectFinished(UParticleSystemComponent* PSystem)
+{
+	Destroy();
 }
 
 

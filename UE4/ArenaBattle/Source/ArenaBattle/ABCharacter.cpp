@@ -207,7 +207,8 @@ float AABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
  */
 bool AABCharacter::CanSetWeapon()
 {
-	return (nullptr == CurrentWeapon);
+	//return (nullptr == CurrentWeapon);
+	return true;
 }
 
 
@@ -217,10 +218,15 @@ bool AABCharacter::CanSetWeapon()
  */
 void AABCharacter::SetWeapon(AABWeapon* NewWeapon)
 {
-	ABCHECK(nullptr != NewWeapon && nullptr == CurrentWeapon);
+	ABCHECK(nullptr != NewWeapon);
 	FName WeaponSocket(TEXT("hand_rSocket"));
 	if(NewWeapon)
 	{
+		if(CurrentWeapon)
+		{
+			CurrentWeapon->Destroy();
+		}
+		
 		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocket);
 		NewWeapon->SetOwner(this);
 		CurrentWeapon = NewWeapon;
