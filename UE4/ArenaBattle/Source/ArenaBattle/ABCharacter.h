@@ -8,8 +8,8 @@
 #include "ABCharacter.generated.h"
 
 
-class UABAnimInstance;
 class AABWeapon;
+class UABAnimInstance;
 class UABCharacterStartComponent;
 
 UCLASS()
@@ -37,7 +37,7 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-	bool CanSetWeapon();
+	bool CanSetWeapon() const;
 	void SetWeapon(AABWeapon* NewWeapon);
 	
 protected:

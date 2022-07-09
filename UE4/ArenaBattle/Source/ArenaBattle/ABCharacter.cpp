@@ -7,6 +7,7 @@
 #include "DrawDebugHelpers.h"
 #include "ABCharacterStartComponent.h"
 #include "ABCharacterWidget.h"
+#include "ABAIController.h"
 #include "Components/WidgetComponent.h"
 
 
@@ -40,10 +41,10 @@ AABCharacter::AABCharacter()
 	SpringArm->TargetArmLength = 400.0f;
 	SpringArm->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_CARDBOARD(TEXT("SkeletalMesh'/Game/InfinityBladeWarriors/Character/CompleteCharacters/SK_CharM_Barbarous.SK_CharM_Barbarous'"));
-	if(SK_CARDBOARD.Succeeded())
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Cardboard(TEXT("SkeletalMesh'/Game/InfinityBladeWarriors/Character/CompleteCharacters/SK_CharM_Barbarous.SK_CharM_Barbarous'"));
+	if(SK_Cardboard.Succeeded())
 	{
-		GetMesh()->SetSkeletalMesh(SK_CARDBOARD.Object);
+		GetMesh()->SetSkeletalMesh(SK_Cardboard.Object);
 	}
 
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
@@ -74,6 +75,12 @@ AABCharacter::AABCharacter()
 		HPBarWidget->SetDrawSize(FVector2D(150.0f, 50.0f));
 	}
 	// << HP Bar Widget
+
+	// >> AI Controller Set
+	// 플레이어가 조종하는 캐릭터를 제외한 모든 캐릭터에 ai set
+	AIControllerClass = AABAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	// << AI Controller Set
 }
 
 
@@ -236,7 +243,7 @@ float AABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
  * @brief 무기를 장착할 수 있는지에 대한 여부 반환
  * @return 무기장착가능 여부 true/false
  */
-bool AABCharacter::CanSetWeapon()
+bool AABCharacter::CanSetWeapon() const
 {
 	//return (nullptr == CurrentWeapon);
 	return true;

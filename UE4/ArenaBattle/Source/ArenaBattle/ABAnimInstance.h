@@ -23,9 +23,9 @@ class ARENABATTLE_API UABAnimInstance : public UAnimInstance
 public:
 	UABAnimInstance();
 	
-	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	virtual void NativeUpdateAnimation(const float DeltaSeconds) override;
 	void PlayAttackMontage();
-	void JumpToAttackMontageSection(int32 NewSection);
+	void JumpToAttackMontageSection(const int32& NewSection);
 
 	FOnNextAttackCheckDelegate OnNextAttackCheck;
 	FOnAttackHitCheckDelegate OnAttackHitCheck;
@@ -34,11 +34,11 @@ public:
 protected:
 private:
 	UFUNCTION()
-	void AnimNotify_AttackHitCheck();
+	void AnimNotify_AttackHitCheck() const;
 	UFUNCTION()
-	void AnimNotify_NextAttackCheck();
+	void AnimNotify_NextAttackCheck() const;
 
-	FName GetAttackMontageSectionName(int32 Section);
+	FName GetAttackMontageSectionName(const int32& Section) const;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// variables
