@@ -12,6 +12,10 @@ class AABWeapon;
 class UABAnimInstance;
 class UABCharacterStartComponent;
 
+
+DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
+
+
 UCLASS()
 class ARENABATTLE_API AABCharacter : public ACharacter
 {
@@ -20,8 +24,9 @@ class ARENABATTLE_API AABCharacter : public ACharacter
 public:
 	enum class EControlMode
 	{
-		GTA,
-		DIABLO
+		GTA
+		,DIABLO
+		,NPC
 	};
 
 	// Sets default values for this character's properties
@@ -35,10 +40,14 @@ public:
 	
 	virtual void PostInitializeComponents() override;
 
+	virtual void PossessedBy(AController* NewController) override;
+	
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	bool CanSetWeapon() const;
 	void SetWeapon(AABWeapon* NewWeapon);
+	void Attack();
+
 	
 protected:
 	// Called when the game starts or when spawned
@@ -52,7 +61,6 @@ private:
 	void LookUp(float NewAxisValue);
 	void Turn(float NewAxisValue);
 	void ViewChange();
-	void Attack();
 	void AttackCheck();
 	
 	UFUNCTION()
@@ -63,6 +71,9 @@ private:
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// variables
+public:
+	FOnAttackEndDelegate OnAttackEnd;
+
 protected:
 	EControlMode CurrentControlMode;
 	FVector DirectionToMove;

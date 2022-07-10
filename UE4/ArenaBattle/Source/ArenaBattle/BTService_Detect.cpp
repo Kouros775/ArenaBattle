@@ -19,14 +19,15 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	const APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if(ControllingPawn == nullptr)
+	{
 		return;
+	}
 	else
 	{
-		UWorld* World = ControllingPawn->GetWorld();
-		FVector Center = ControllingPawn->GetActorLocation();
-		float DetectRadius = 600.0f;
+		const UWorld* World = ControllingPawn->GetWorld();
+		const FVector Center = ControllingPawn->GetActorLocation();
 
 		if(nullptr == World)
 		{
@@ -34,10 +35,11 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		}
 		else
 		{
+			constexpr float DetectRadius = 600.0f;
 			TArray<FOverlapResult> OverlapResults;
-			FCollisionQueryParams CollisionQueryParam(NAME_None, false, ControllingPawn);
+			const FCollisionQueryParams CollisionQueryParam(NAME_None, false, ControllingPawn);
 
-			bool bResult = World->OverlapMultiByChannel(
+			const bool bResult = World->OverlapMultiByChannel(
 				OverlapResults
 				, Center
 				, FQuat::Identity

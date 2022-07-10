@@ -15,9 +15,11 @@ UBTTask_FindPatrolPos::UBTTask_FindPatrolPos()
 
 EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	// 리턴값이 aborted, failed, succeeded, inprogress 이렇게 4개로 정해져있음.
+	
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	auto ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	const APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 
 	if(nullptr == ControllingPawn)
 	{
@@ -25,17 +27,19 @@ EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& O
 	}
 	else
 	{
-		UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetNavigationSystem(ControllingPawn->GetWorld());
+		const UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetNavigationSystem(ControllingPawn->GetWorld());
 
 		if(nullptr == NavSystem)
+		{
 			return EBTNodeResult::Failed;
+		}
 		else
 		{
-			FVector Origin = OwnerComp.GetBlackboardComponent()->GetValueAsVector(AABAIController::HomePosKey);
+			const FVector Origin = OwnerComp.GetBlackboardComponent()->GetValueAsVector(AABAIController::HomePosKey);
 
 			FNavLocation NextPatrol;
 
-			if(NavSystem->GetRandomPointInNavigableRadius(FVector::ZeroVector, 500.0f, NextPatrol))
+			if(NavSystem->GetRandomPointInNavigableRadius(Origin, 500.0f, NextPatrol))
 			{
 				OwnerComp.GetBlackboardComponent()->SetValueAsVector(AABAIController::PatrolPosKey, NextPatrol.Location);
 				return EBTNodeResult::Succeeded;
