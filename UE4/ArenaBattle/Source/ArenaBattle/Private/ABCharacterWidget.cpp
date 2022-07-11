@@ -2,11 +2,11 @@
 
 
 #include "ABCharacterWidget.h"
-#include "ABCharacterStartComponent.h"
+#include "ABCharacterStatComponent.h"
 #include "Components/ProgressBar.h"
 
 
-void UABCharacterWidget::BindCharacterStat(UABCharacterStartComponent* NewCharacterStat)
+void UABCharacterWidget::BindCharacterStat(UABCharacterStatComponent* NewCharacterStat)
 {
 	ABCHECK(NewCharacterStat);
 

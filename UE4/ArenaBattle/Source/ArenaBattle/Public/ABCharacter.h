@@ -11,7 +11,7 @@
 
 class AABWeapon;
 class UABAnimInstance;
-class UABCharacterStartComponent;
+class UABCharacterStatComponent;
 
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
@@ -120,7 +120,7 @@ protected:
 
 	// >> Stat
 	UPROPERTY(VisibleAnywhere, Category=Stat)
-	UABCharacterStartComponent* CharacterStat;
+	UABCharacterStatComponent* CharacterStat;
 	// << Stat
 
 

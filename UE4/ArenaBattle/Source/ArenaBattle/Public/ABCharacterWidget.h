@@ -12,7 +12,7 @@
  */
 
 
-class UABCharacterStartComponent;
+class UABCharacterStatComponent;
 class UProgressBar;
 
 UCLASS()
@@ -21,7 +21,7 @@ class ARENABATTLE_API UABCharacterWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void BindCharacterStat(UABCharacterStartComponent* NewCharacterStat);
+	void BindCharacterStat(UABCharacterStatComponent* NewCharacterStat);
 
 protected:
 	virtual void NativeConstruct() override;
@@ -30,7 +30,7 @@ protected:
 	
 	// variables
 private:
-	TWeakObjectPtr<UABCharacterStartComponent> CurrentCharacterStat;
+	TWeakObjectPtr<UABCharacterStatComponent> CurrentCharacterStat;
 	UPROPERTY()
 	UProgressBar* HPProgressBar;
 };

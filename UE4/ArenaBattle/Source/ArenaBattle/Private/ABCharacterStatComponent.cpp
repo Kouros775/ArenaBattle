@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ABCharacterStartComponent.h"
+#include "ABCharacterStatComponent.h"
 #include "ABGameInstance.h"
 
 
 // Sets default values for this component's properties
-UABCharacterStartComponent::UABCharacterStartComponent()
+UABCharacterStatComponent::UABCharacterStatComponent()
 	: CurrentStatData(nullptr)
 	, Level(1)
 {
@@ -24,7 +24,7 @@ UABCharacterStartComponent::UABCharacterStartComponent()
  * @brief Level로 설정하고, 그것에 맞는 CharacterData를 가져온다.
  * @param NewLevel 설정할 Level 
  */
-void UABCharacterStartComponent::SetNewLevel(const int32& NewLevel)
+void UABCharacterStatComponent::SetNewLevel(const int32& NewLevel)
 {
 	const auto ABGameInstance = Cast<UABGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
@@ -46,7 +46,7 @@ void UABCharacterStartComponent::SetNewLevel(const int32& NewLevel)
  * @brief 데미지를 입고, Hp가 0이면 죽었다고 알린다.
  * @param NewDamage 타격받은 데미지 량 
  */
-void UABCharacterStartComponent::SetDamage(const float& NewDamage)
+void UABCharacterStatComponent::SetDamage(const float& NewDamage)
 {
 	ABCHECK(CurrentStatData);
 	SetHP(FMath::Clamp<float>(CurrentHP - NewDamage, 0.0f, CurrentStatData->MaxHP));
@@ -57,7 +57,7 @@ void UABCharacterStartComponent::SetDamage(const float& NewDamage)
  * @brief 공격데미지량 반환 함수
  * @return 공격데미지량 반환
  */
-float UABCharacterStartComponent::GetAttack() const
+float UABCharacterStatComponent::GetAttack() const
 {
 	ABCHECK(CurrentStatData, 0.0f);
 	return CurrentStatData->Attack;
@@ -68,7 +68,7 @@ float UABCharacterStartComponent::GetAttack() const
  * @brief HP를 설정하고, 특정값 이하이면 죽었음을 알림.
  * @param NewHP 설정할 HP 
  */
-void UABCharacterStartComponent::SetHP(const float& NewHP)
+void UABCharacterStatComponent::SetHP(const float& NewHP)
 {
 	CurrentHP = NewHP;
 	OnHPChanged.Broadcast();
@@ -84,7 +84,7 @@ void UABCharacterStartComponent::SetHP(const float& NewHP)
  * @brief 현재의 HP의 퍼센트를 반환 
  * @return 0~1로 정규화된 값
  */
-float UABCharacterStartComponent::GetHPRatio() const
+float UABCharacterStatComponent::GetHPRatio() const
 {
 	ABCHECK(CurrentStatData, 0.0f);
 
@@ -93,7 +93,7 @@ float UABCharacterStartComponent::GetHPRatio() const
 
 
 // Called when the game starts
-void UABCharacterStartComponent::BeginPlay()
+void UABCharacterStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -103,14 +103,14 @@ void UABCharacterStartComponent::BeginPlay()
 
 
 // Called every frame
-void UABCharacterStartComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UABCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
 }
 
-void UABCharacterStartComponent::InitializeComponent()
+void UABCharacterStatComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 

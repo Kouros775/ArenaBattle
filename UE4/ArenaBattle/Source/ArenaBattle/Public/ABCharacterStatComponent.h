@@ -4,7 +4,7 @@
 
 #include "ArenaBattle.h"
 #include "Components/ActorComponent.h"
-#include "ABCharacterStartComponent.generated.h"
+#include "ABCharacterStatComponent.generated.h"
 
 
 struct FABCharacterData;
@@ -15,13 +15,13 @@ DECLARE_MULTICAST_DELEGATE(FOnHPChangedDelegate);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ARENABATTLE_API UABCharacterStartComponent : public UActorComponent
+class ARENABATTLE_API UABCharacterStatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UABCharacterStartComponent();
+	UABCharacterStatComponent();
 
 	void SetNewLevel(const int32& NewLevel);
 	void SetDamage(const float& NewDamage);

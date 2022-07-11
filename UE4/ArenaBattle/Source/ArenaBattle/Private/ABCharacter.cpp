@@ -5,7 +5,7 @@
 #include "ABAnimInstance.h"
 #include "ABWeapon.h"
 #include "DrawDebugHelpers.h"
-#include "ABCharacterStartComponent.h"
+#include "ABCharacterStatComponent.h"
 #include "ABCharacterWidget.h"
 #include "ABAIController.h"
 #include "Components/WidgetComponent.h"
@@ -30,7 +30,7 @@ AABCharacter::AABCharacter()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CAMERA"));
-	CharacterStat = CreateDefaultSubobject<UABCharacterStartComponent>(TEXT("CHARACTERSTAT"));
+	CharacterStat = CreateDefaultSubobject<UABCharacterStatComponent>(TEXT("CHARACTERSTAT"));
 	HPBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBARWIDGET"));
 	
 	
