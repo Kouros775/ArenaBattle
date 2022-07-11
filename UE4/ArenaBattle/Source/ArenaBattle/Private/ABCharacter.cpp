@@ -9,6 +9,8 @@
 #include "ABCharacterWidget.h"
 #include "ABAIController.h"
 #include "Components/WidgetComponent.h"
+#include "ABCharacterSetting.h"
+#include "ABGameInstance.h"
 
 
 AABCharacter::AABCharacter()
@@ -81,6 +83,20 @@ AABCharacter::AABCharacter()
 	AIControllerClass = AABAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	// << AI Controller Set
+
+
+	// >> ArenaBattle Setting
+	//const auto DefaultSetting = GetDefault<UABCharacterSetting>();
+	//if(DefaultSetting->CharacterAssets.Num() > 0)
+	//{
+	//	for(auto CharacterAsset : DefaultSetting->CharacterAssets)
+	//	{
+	//		ABLOG(Warning, TEXT("Character Asset : %s"), *CharacterAsset.ToString());
+	//	}
+	//}
+
+	CharacterAssetToLoad = FSoftObjectPath(nullptr);
+	// << ArenaBattle Setting
 }
 
 
@@ -89,6 +105,23 @@ void AABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// >> 랜덤으로 무작위 메쉬
+	if(IsPlayerControlled() == false)
+	{
+		const auto DefaultSetting = GetDefault<UABCharacterSetting>();
+		const int32 RandIndex = FMath::RandRange(0, DefaultSetting->CharacterAssets.Num() - 1);
+		CharacterAssetToLoad = DefaultSetting->CharacterAssets[RandIndex];
+
+		const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
+		if(ABGameInstance)
+		{
+			AssetStreamingHandle = ABGameInstance->StreamableManager.RequestAsyncLoad(CharacterAssetToLoad
+				, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
+		}
+	}
+	// << 랜덤으로 무작위 메쉬 
+
+	
 	const auto CharacterWidget = Cast<UABCharacterWidget>(HPBarWidget->GetUserWidgetObject());
 
 	if(CharacterWidget)
@@ -473,4 +506,15 @@ void AABCharacter::AttackEndComboState()
 	IsComboInputOn = false;
 	CanNextCombo = false;
 	CurrentCombo = 0;
+}
+
+
+void AABCharacter::OnAssetLoadCompleted()
+{
+	USkeletalMesh* AssetLoaded = Cast<USkeletalMesh>(AssetStreamingHandle->GetLoadedAsset());
+	AssetStreamingHandle.Reset();
+	if(AssetLoaded)
+	{
+		GetMesh()->SetSkeletalMesh(AssetLoaded);
+	}
 }

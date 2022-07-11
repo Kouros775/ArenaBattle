@@ -4,6 +4,7 @@
 
 #include "ArenaBattle.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/StreamableManager.h"
 #include "GameFramework/Character.h"
 #include "ABCharacter.generated.h"
 
@@ -68,6 +69,8 @@ private:
 
 	void AttackStartComboState();
 	void AttackEndComboState();
+
+	void OnAssetLoadCompleted();
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// variables
@@ -119,4 +122,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category=Stat)
 	UABCharacterStartComponent* CharacterStat;
 	// << Stat
+
+
+	FSoftObjectPath CharacterAssetToLoad;
+	TSharedPtr<FStreamableHandle> AssetStreamingHandle;
 };

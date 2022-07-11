@@ -5,6 +5,7 @@
 #include "ArenaBattle.h"
 #include "Engine/DataTable.h"
 #include "Engine/GameInstance.h"
+#include "Engine/StreamableManager.h"
 #include "ABGameInstance.generated.h"
 
 
@@ -51,7 +52,13 @@ public:
 
 	FABCharacterData* GetAbCharacterData(const int32& Level);
 
+
+	// variables
+public:
+	FStreamableManager StreamableManager;
 private:
 	UPROPERTY()
 	UDataTable* ABCharacterTable;
+
+	
 };
