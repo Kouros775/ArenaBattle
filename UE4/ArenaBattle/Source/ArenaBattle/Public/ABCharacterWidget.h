@@ -25,7 +25,7 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
-	void UpdateHPWidget();
+	void UpdateHPWidget() const;
 
 	
 	// variables

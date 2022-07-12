@@ -26,7 +26,7 @@ void UABCharacterWidget::NativeConstruct()
 }
 
 
-void UABCharacterWidget::UpdateHPWidget()
+void UABCharacterWidget::UpdateHPWidget() const
 {
 	if(CurrentCharacterStat.IsValid())
 	{

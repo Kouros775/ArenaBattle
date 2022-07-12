@@ -2,20 +2,20 @@
 
 
 #include "ABCharacter.h"
-#include "ABAnimInstance.h"
+
 #include "ABWeapon.h"
-#include "DrawDebugHelpers.h"
-#include "ABCharacterStatComponent.h"
-#include "ABCharacterWidget.h"
-#include "ABAIController.h"
-#include "Components/WidgetComponent.h"
-#include "ABCharacterSetting.h"
 #include "ABGameInstance.h"
+#include "ABAnimInstance.h"
+#include "ABAIController.h"
+#include "ABCharacterWidget.h"
+#include "ABCharacterSetting.h"
+#include "ABCharacterStatComponent.h"
+#include "Components/WidgetComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 AABCharacter::AABCharacter()
-	: CurrentControlMode(EControlMode::GTA)
-	, DirectionToMove(FVector::ZeroVector)
+	: DirectionToMove(FVector::ZeroVector)
 	, ArmLengthTo(0.0f)
 	, ArmRotationTo(FRotator::ZeroRotator)
 	, ArmLengthSpeed(3.0f)
@@ -38,10 +38,7 @@ AABCharacter::AABCharacter()
 	Camera->SetupAttachment(SpringArm);
 	HPBarWidget->SetupAttachment(GetMesh());
 	
-
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
-	SpringArm->TargetArmLength = 400.0f;
-	SpringArm->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Cardboard(TEXT("SkeletalMesh'/Game/InfinityBladeWarriors/Character/CompleteCharacters/SK_CharM_Barbarous.SK_CharM_Barbarous'"));
 	if(SK_Cardboard.Succeeded())
@@ -60,7 +57,7 @@ AABCharacter::AABCharacter()
 	SetControlMode(EControlMode::DIABLO);
 
 	// 점프 value
-	GetCharacterMovement()->JumpZVelocity = 800.0f;
+	GetCharacterMovement()->JumpZVelocity = 400.0f;
 
 	AttackEndComboState();
 	
@@ -131,6 +128,10 @@ void AABCharacter::BeginPlay()
 }
 
 
+/**
+ * @brief 카메라 시점 설정
+ * @param ControlMode 카메라 시점
+ */
 void AABCharacter::SetControlMode(const EControlMode& ControlMode)
 {
 	CurrentControlMode = ControlMode;
@@ -209,6 +210,7 @@ void AABCharacter::Tick(float DeltaTime)
 		}
 	}
 }
+
 
 // Called to bind functionality to input
 void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
