@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "ABAIController.h"
+#include "ABPlayerController.h"
 #include "ArenaBattle.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/StreamableManager.h"
@@ -49,6 +51,8 @@ public:
 	void SetWeapon(AABWeapon* NewWeapon);
 	void Attack();
 
+	void SetCharacterState(const ECharacterState& NewState);
+	ECharacterState GetCharacterState() const;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -127,4 +131,24 @@ protected:
 
 	FSoftObjectPath CharacterAssetToLoad;
 	TSharedPtr<FStreamableHandle> AssetStreamingHandle;
+
+
+	int32 AssetIndex;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
+	ECharacterState CurrentState;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
+	bool bIsPlayer;
+
+	UPROPERTY()
+	AABAIController* ABAIController;
+
+	UPROPERTY()
+	AABPlayerController* ABPlayerController;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
+	float DeadTimer;
+
+	FTimerHandle DeadTimerHandle = {};
 };

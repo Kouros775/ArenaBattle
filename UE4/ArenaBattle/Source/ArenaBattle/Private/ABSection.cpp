@@ -2,11 +2,16 @@
 
 
 #include "ABSection.h"
+#include "ABCharacter.h"
+#include "ABItemBox.h"
+
 
 // Sets default values
 AABSection::AABSection()
 	: bNoBattle(false)
 	, CurrentState(ESectionState::Ready)
+	, EnemySpawnTime(2.0f)
+	, ItemBoxSpawnTime(5.0f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -80,6 +85,10 @@ void AABSection::BeginPlay()
 }
 
 
+/**
+ * @brief 현재 State를 set
+ * @param NewState 
+ */
 void AABSection::SetState(const ESectionState& NewState)
 {
 	switch (NewState)
@@ -102,6 +111,18 @@ void AABSection::SetState(const ESectionState& NewState)
 				GateTrigger->SetCollisionProfileName(TEXT("NoCollision"));
 			}
 			OperateGates(false);
+			GetWorld()->GetTimerManager().SetTimer(SpawnNPCTimerHandle
+				, FTimerDelegate::CreateUObject(this, &AABSection::OnNPCSpawn)
+				, EnemySpawnTime
+				, false);
+
+			GetWorld()->GetTimerManager().SetTimer(SpawnItemBoxTimerHandle
+				, FTimerDelegate::CreateLambda([this]()->void
+				{
+					FVector2D RandXY = FMath::RandPointInCircle(600.0f);
+					GetWorld()->SpawnActor<AABItemBox>(GetActorLocation() + FVector(RandXY, 30.0f), FRotator::ZeroRotator);
+				}), ItemBoxSpawnTime, false);
+			
 			break;
 		}
 		case ESectionState::Complete:
@@ -175,6 +196,15 @@ void AABSection::OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	{
 		ABLOG(Warning, TEXT("New Section area is not empty"));
 	}
+}
+
+
+/**
+ * @brief NPC 리스폰
+ */
+void AABSection::OnNPCSpawn()
+{
+	GetWorld()->SpawnActor<AABCharacter>(GetActorLocation() + FVector::UpVector * 88.0f, FRotator::ZeroRotator);
 }
 
 

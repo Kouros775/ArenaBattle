@@ -46,6 +46,7 @@ private:
 	, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep
 	, const FHitResult& SweepResult);
 
+	void OnNPCSpawn();
 	
 	// variables
 public:
@@ -67,4 +68,14 @@ private:
 	bool bNoBattle;
 
 	ESectionState CurrentState;
+
+	// spawn Item, NPC
+	UPROPERTY(EditAnywhere, Category=Spawn ,meta=(AllowPrivateAccess=true))
+	float EnemySpawnTime;
+
+	UPROPERTY(EditAnywhere, Category=Spwan, meta=(AllowPrivateAccess=true))
+	float ItemBoxSpawnTime;
+
+	FTimerHandle SpawnNPCTimerHandle = {};
+	FTimerHandle SpawnItemBoxTimerHandle = {};
 };

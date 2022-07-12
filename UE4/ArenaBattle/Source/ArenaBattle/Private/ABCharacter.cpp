@@ -3,6 +3,8 @@
 
 #include "ABCharacter.h"
 
+#include <memory>
+
 #include "ABWeapon.h"
 #include "ABGameInstance.h"
 #include "ABAnimInstance.h"
@@ -12,6 +14,9 @@
 #include "ABCharacterStatComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DrawDebugHelpers.h"
+#include "ABPlayerController.h"
+#include "ABPlayerState.h"
+#include "ABHUDWidget.h"
 
 
 AABCharacter::AABCharacter()
@@ -24,6 +29,8 @@ AABCharacter::AABCharacter()
 	, MaxCombo(4)
 	, AttackRange(200.0f)
 	, AttackRadius(50.0f)
+	, AssetIndex(4)
+	, DeadTimer(5.0f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -94,6 +101,16 @@ AABCharacter::AABCharacter()
 
 	CharacterAssetToLoad = FSoftObjectPath(nullptr);
 	// << ArenaBattle Setting
+
+
+	// >>
+	SetActorHiddenInGame(true);
+	HPBarWidget->SetHiddenInGame(true);
+	//bCanBeDamaged = false;
+	SetCanBeDamaged(false);
+	
+	// <<
+	
 }
 
 
@@ -102,29 +119,35 @@ void AABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// >> 랜덤으로 무작위 메쉬
-	if(IsPlayerControlled() == false)
+	bIsPlayer = IsPlayerControlled();
+	if(bIsPlayer == true)
 	{
-		const auto DefaultSetting = GetDefault<UABCharacterSetting>();
-		const int32 RandIndex = FMath::RandRange(0, DefaultSetting->CharacterAssets.Num() - 1);
-		CharacterAssetToLoad = DefaultSetting->CharacterAssets[RandIndex];
-
-		const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
-		if(ABGameInstance)
-		{
-			AssetStreamingHandle = ABGameInstance->StreamableManager.RequestAsyncLoad(CharacterAssetToLoad
-				, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
-		}
+		ABPlayerController = Cast<AABPlayerController>(GetController());
+		ABCHECK(ABPlayerController);
 	}
-	// << 랜덤으로 무작위 메쉬 
-
-	
-	const auto CharacterWidget = Cast<UABCharacterWidget>(HPBarWidget->GetUserWidgetObject());
-
-	if(CharacterWidget)
+	else
 	{
-		CharacterWidget->BindCharacterStat(CharacterStat);
+		ABAIController = Cast<AABAIController>(GetController());
+		ABCHECK(ABAIController);
 	}
+
+	const auto DefaultSetting = GetDefault<UABCharacterSetting>();
+
+	if(bIsPlayer == true)
+	{
+		AssetIndex = 4;
+	}
+	else
+	{
+		AssetIndex = FMath::RandRange(0, DefaultSetting->CharacterAssets.Num() - 1);
+	}
+
+	CharacterAssetToLoad = DefaultSetting->CharacterAssets[AssetIndex];
+	const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
+	ABCHECK(ABGameInstance);
+	AssetStreamingHandle = ABGameInstance->StreamableManager.RequestAsyncLoad(CharacterAssetToLoad
+		, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
+	SetCharacterState(ECharacterState::Loading);
 }
 
 
@@ -436,6 +459,104 @@ void AABCharacter::Attack()
 	}
 }
 
+void AABCharacter::SetCharacterState(const ECharacterState& NewState)
+{
+	ABCHECK(CurrentState != NewState);
+	CurrentState = NewState;
+
+	switch (CurrentState)
+	{
+	case ECharacterState::Loading:
+		{
+			if(bIsPlayer)
+			{
+				DisableInput(ABPlayerController);
+
+				ABPlayerController->GetHUDWidget()->BindCharacterStat(CharacterStat);
+				
+				const auto ABPlayerState = Cast<AABPlayerState>(GetPlayerState());
+				ABCHECK(nullptr != ABPlayerState);
+				CharacterStat->SetNewLevel(ABPlayerState->GetCharacterLevel());
+			}
+			SetActorHiddenInGame(true);
+			HPBarWidget->SetHiddenInGame(true);
+			//bCanBeDamaged = false;
+			SetCanBeDamaged(false);
+			break;
+		}
+	case ECharacterState::Ready:
+		{
+			SetActorHiddenInGame(false);
+			HPBarWidget->SetHiddenInGame(false);
+			SetCanBeDamaged(true);
+
+			CharacterStat->OnHPIsZero.AddLambda([this]()->void
+			{
+				SetCharacterState(ECharacterState::Dead);
+			});
+
+			const auto CharacterWidget = Cast<UABCharacterWidget>(HPBarWidget->GetUserWidgetObject());
+			ABCHECK(nullptr != CharacterWidget);
+			CharacterWidget->BindCharacterStat(CharacterStat);
+			
+			if(bIsPlayer)
+			{
+				SetControlMode(EControlMode::DIABLO);
+				GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+				EnableInput(ABPlayerController);
+			}
+			else
+			{
+				SetControlMode(EControlMode::NPC);
+				GetCharacterMovement()->MaxWalkSpeed = 400.0f;
+				ABAIController->RunAI();
+			}
+			break;
+		}
+	case ECharacterState::Dead:
+		{
+			SetActorEnableCollision(false);
+			GetMesh()->SetHiddenInGame(false);
+			HPBarWidget->SetHiddenInGame(true);
+			ABAnim->SetDeadAnim();
+			SetCanBeDamaged(false);
+
+			if(bIsPlayer)
+			{
+				DisableInput(ABPlayerController);
+			}
+			else
+			{
+				ABAIController->StopAI();
+			}
+
+			GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([this]()->void
+			{
+				if(bIsPlayer)
+				{
+					ABPlayerController->RestartLevel();
+				}
+				else
+				{
+					Destroy();
+				}
+			}), DeadTimer, false);
+			break;
+		}
+
+	default:
+		{
+			break;
+		}
+	}
+}
+
+
+ECharacterState AABCharacter::GetCharacterState() const
+{
+	return CurrentState;
+}
+
 
 void AABCharacter::AttackCheck()
 {
@@ -484,6 +605,7 @@ void AABCharacter::AttackCheck()
 	}
 }
 
+
 void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	ABCHECK(IsAttacking);
@@ -515,8 +637,8 @@ void AABCharacter::OnAssetLoadCompleted()
 {
 	USkeletalMesh* AssetLoaded = Cast<USkeletalMesh>(AssetStreamingHandle->GetLoadedAsset());
 	AssetStreamingHandle.Reset();
-	if(AssetLoaded)
-	{
-		GetMesh()->SetSkeletalMesh(AssetLoaded);
-	}
+	ABCHECK(AssetLoaded != nullptr);
+	GetMesh()->SetSkeletalMesh(AssetLoaded);
+
+	SetCharacterState(ECharacterState::Ready);
 }
