@@ -53,6 +53,9 @@ public:
 	void Attack();
 
 	int32 GetExp() const;
+	float GetFinalAttackRange() const;
+	float GetFinalAttackDamage() const;
+
 	
 	void SetCharacterState(const ECharacterState& NewState);
 	ECharacterState GetCharacterState() const;

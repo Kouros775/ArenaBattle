@@ -27,6 +27,8 @@ public:
 
 
 	
+	int32 GetGameHighScore() const;
+
 	float GetExpRatio() const;
 	bool AddExp(const int32& IncomeExp);
 

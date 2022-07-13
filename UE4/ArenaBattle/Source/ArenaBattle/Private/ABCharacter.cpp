@@ -27,7 +27,7 @@ AABCharacter::AABCharacter()
 	, ArmRotationSpeed(10.0f)
 	, IsAttacking(false)
 	, MaxCombo(4)
-	, AttackRange(200.0f)
+	, AttackRange(80.0f)
 	, AttackRadius(50.0f)
 	, AssetIndex(4)
 	, DeadTimer(5.0f)
@@ -350,14 +350,18 @@ bool AABCharacter::CanSetWeapon() const
 void AABCharacter::SetWeapon(AABWeapon* NewWeapon)
 {
 	ABCHECK(nullptr != NewWeapon);
+	if(nullptr != CurrentWeapon)
+	{
+		CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		CurrentWeapon->Destroy();
+		CurrentWeapon = nullptr;
+	}
+	
+
+	
 	const FName WeaponSocket(TEXT("hand_rSocket"));
 	if(NewWeapon)
 	{
-		if(CurrentWeapon)
-		{
-			CurrentWeapon->Destroy();
-		}
-		
 		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocket);
 		NewWeapon->SetOwner(this);
 		CurrentWeapon = NewWeapon;
@@ -571,13 +575,15 @@ ECharacterState AABCharacter::GetCharacterState() const
 
 void AABCharacter::AttackCheck()
 {
+	float FinalAttackRange = GetFinalAttackRange();
+	
 	FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, this);
 
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult
 		, GetActorLocation()
-		, GetActorLocation() + GetActorForwardVector() * 200.0f
+		, GetActorLocation() + GetActorForwardVector() * FinalAttackRange
 		, FQuat::Identity
 		, ECollisionChannel::ECC_GameTraceChannel2
 		, FCollisionShape::MakeSphere(50.0f)
@@ -585,9 +591,9 @@ void AABCharacter::AttackCheck()
 	);
 
 #if ENABLE_DRAW_DEBUG
-	FVector TraceVec = GetActorForwardVector() * AttackRange;
+	FVector TraceVec = GetActorForwardVector() * FinalAttackRange;
 	FVector Center = GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	float HalfHeight = FinalAttackRange * 0.5f + AttackRadius;
 	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
 	FColor DrawColor = bResult ? FColor::Red : FColor::Green;
 	float DebugLifeTime = 5.0f;
@@ -611,7 +617,7 @@ void AABCharacter::AttackCheck()
 			ABLOG(Warning, TEXT("Hit Actor Name : %s"), *HitResult.Actor->GetName());
 
 			FDamageEvent DamageEvent;
-			HitResult.Actor->TakeDamage(CharacterStat->GetAttack(), DamageEvent, GetController(), this);
+			HitResult.Actor->TakeDamage(GetFinalAttackDamage(), DamageEvent, GetController(), this);
 		}
 	}
 }
@@ -658,4 +664,34 @@ void AABCharacter::OnAssetLoadCompleted()
 int32 AABCharacter::GetExp() const
 {
 	return CharacterStat->GetDropExp();
+}
+
+float AABCharacter::GetFinalAttackRange() const
+{
+	float attackRange;
+
+	if(nullptr != CurrentWeapon)
+		attackRange = CurrentWeapon->GetAttackRange();
+	else
+	{
+		attackRange = this->AttackRange;
+	}
+
+	return attackRange;
+}
+
+float AABCharacter::GetFinalAttackDamage() const
+{
+	float rtn = 0.0f;
+
+	if(nullptr != CurrentWeapon)
+	{
+		rtn = (CharacterStat->GetAttack() + CurrentWeapon->GetAttackDamage()) * CurrentWeapon->GetAttackModifier();
+	}
+	else
+	{
+		rtn = CharacterStat->GetAttack() * 1.0f;
+	}
+
+	return rtn;
 }

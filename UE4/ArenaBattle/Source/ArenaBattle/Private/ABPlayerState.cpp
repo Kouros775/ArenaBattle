@@ -95,7 +95,7 @@ void AABPlayerState::SetCharacterLevel(const int32& NewCharacterLevel)
 void AABPlayerState::InitPlayerData()
 {
 	auto ABSaveGame = Cast<UABSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0));
-	if(ABSaveGame)
+	if(ABSaveGame == nullptr)
 	{
 		ABSaveGame = GetMutableDefault<UABSaveGame>();
 	}
