@@ -27,6 +27,13 @@ void AABPlayerController::NPCKill(const AABCharacter* KilledNPC) const
 }
 
 
+void AABPlayerController::AddGameScore() const
+{
+	ABPlayerState->AddGameScore();
+}
+
+
+
 void AABPlayerController::BeginPlay()
 {
 	Super::BeginPlay();

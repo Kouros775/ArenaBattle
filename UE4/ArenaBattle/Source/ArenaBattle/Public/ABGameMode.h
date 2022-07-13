@@ -6,7 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "ABGameMode.generated.h"
 
-
+class AABGameState;
+class AABPlayerController;
 /**
  * 
  */
@@ -17,4 +18,11 @@ class ARENABATTLE_API AABGameMode : public AGameModeBase
 public:
 	explicit AABGameMode();
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void PostInitializeComponents() override;
+	void AddScore(AABPlayerController* ScoredPlayer);
+
+
+	// variables
+private:
+	AABGameState* ABGameState;
 };

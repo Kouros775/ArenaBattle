@@ -47,6 +47,10 @@ private:
 	, const FHitResult& SweepResult);
 
 	void OnNPCSpawn();
+
+	UFUNCTION()
+	void OnKeyNPCDestroyed(AActor* DestroyedActor);
+
 	
 	// variables
 public:

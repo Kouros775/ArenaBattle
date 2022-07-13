@@ -57,6 +57,14 @@ bool AABPlayerState::AddExp(const int32& IncomeExp)
 	}
 }
 
+
+void AABPlayerState::AddGameScore()
+{
+	GameScore++;
+	OnPlayerStateChanged.Broadcast();
+}
+
+
 void AABPlayerState::SetCharacterLevel(const int32& NewCharacterLevel)
 {
 	const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
