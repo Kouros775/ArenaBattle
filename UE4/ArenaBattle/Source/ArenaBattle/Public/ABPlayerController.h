@@ -8,6 +8,8 @@
 
 
 class UABHUDWidget;
+class AABCharacter;
+class AABPlayerState;
 
 
 /**
@@ -23,7 +25,7 @@ public:
 	AABPlayerController();
 
 	UABHUDWidget* GetHUDWidget() const;
-	
+	void NPCKill(const AABCharacter* KilledNPC) const;
 protected:
 	virtual void BeginPlay() override;
 
@@ -35,4 +37,7 @@ protected:
 
 	UPROPERTY()
 	UABHUDWidget* HUDWidget;
+
+	UPROPERTY()
+	AABPlayerState* ABPlayerState;
 };

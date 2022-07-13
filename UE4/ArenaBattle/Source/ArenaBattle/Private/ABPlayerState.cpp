@@ -2,11 +2,13 @@
 
 
 #include "ABPlayerState.h"
+#include "ABGameInstance.h"
 
 
 AABPlayerState::AABPlayerState()
 	: GameScore(0)
 	, CharacterLevel(1)
+	,Exp(0)
 {
 }
 
@@ -22,10 +24,55 @@ int32 AABPlayerState::GetCharacterLevel() const
 	return CharacterLevel;
 }
 
+float AABPlayerState::GetExpRatio() const
+{
+	if(CurrentStatData->NextExp <= KINDA_SMALL_NUMBER)
+		return 0.0f;
+
+	float Result = (float)Exp / (float)CurrentStatData->NextExp;
+	return Result;
+}
+
+
+bool AABPlayerState::AddExp(const int32& IncomeExp)
+{
+	if(CurrentStatData->NextExp == -1)
+	{
+		return false;
+	}
+	else
+	{
+		bool DidLevelUp = false;
+		Exp = Exp + IncomeExp;
+
+		if(Exp >= CurrentStatData->NextExp)
+		{
+			Exp = Exp - CurrentStatData->NextExp;
+			SetCharacterLevel(CharacterLevel + 1);
+			DidLevelUp = true;
+		}
+
+		OnPlayerStateChanged.Broadcast();
+		return DidLevelUp;
+	}
+}
+
+void AABPlayerState::SetCharacterLevel(const int32& NewCharacterLevel)
+{
+	const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
+	ABCHECK(nullptr != ABGameInstance);
+
+	CurrentStatData = ABGameInstance->GetAbCharacterData(NewCharacterLevel);
+	ABCHECK(nullptr != CurrentStatData);
+
+	CharacterLevel = NewCharacterLevel;
+}
+
 
 void AABPlayerState::InitPlayerData()
 {
-	//SetPlayerName(TEXT("Destiny"));
-	CharacterLevel = 5;
+	SetPlayerName(TEXT("JMY"));
+	SetCharacterLevel(5);
 	GameScore = 0;
+	Exp = 0;
 }

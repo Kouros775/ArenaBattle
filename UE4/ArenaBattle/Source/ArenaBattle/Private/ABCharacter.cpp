@@ -317,6 +317,17 @@ float AABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 	CharacterStat->SetDamage(FinalDamage);
 
+	if(CurrentState == ECharacterState::Dead)
+	{
+		if(EventInstigator->IsPlayerController())
+		{
+			auto PlayerController = Cast<AABPlayerController>(EventInstigator);
+			//ABCHECK(nullptr != PlayerController);
+			PlayerController->NPCKill(this);
+		}
+	}
+	
+	
 	return FinalDamage;
 }
 
@@ -641,4 +652,10 @@ void AABCharacter::OnAssetLoadCompleted()
 	GetMesh()->SetSkeletalMesh(AssetLoaded);
 
 	SetCharacterState(ECharacterState::Ready);
+}
+
+
+int32 AABCharacter::GetExp() const
+{
+	return CharacterStat->GetDropExp();
 }

@@ -91,6 +91,11 @@ float UABCharacterStatComponent::GetHPRatio() const
 	return (CurrentStatData->MaxHP < KINDA_SMALL_NUMBER) ? 0.0f : (CurrentHP / CurrentStatData->MaxHP);
 }
 
+int32 UABCharacterStatComponent::GetDropExp() const
+{
+	return CurrentStatData->DropExp;
+}
+
 
 // Called when the game starts
 void UABCharacterStatComponent::BeginPlay()

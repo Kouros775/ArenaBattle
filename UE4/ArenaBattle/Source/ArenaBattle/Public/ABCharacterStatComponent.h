@@ -32,6 +32,8 @@ public:
 	void SetHP(const float& NewHP);
 	float GetHPRatio() const;
 
+	int32 GetDropExp() const;
+	
 	FOnHPChangedDelegate OnHPChanged;
 	
 protected:

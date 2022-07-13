@@ -14,6 +14,7 @@
 class AABWeapon;
 class UABAnimInstance;
 class UABCharacterStatComponent;
+class AABPlayerController;
 
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
@@ -51,6 +52,8 @@ public:
 	void SetWeapon(AABWeapon* NewWeapon);
 	void Attack();
 
+	int32 GetExp() const;
+	
 	void SetCharacterState(const ECharacterState& NewState);
 	ECharacterState GetCharacterState() const;
 	
