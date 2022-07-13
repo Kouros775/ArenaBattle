@@ -20,6 +20,7 @@ public:
 	int32 GetTotalGameScore() const;
 	void AddGameScore();
 
+	
 	// variables
 private:
 	UPROPERTY(Transient)

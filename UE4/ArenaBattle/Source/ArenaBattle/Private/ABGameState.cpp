@@ -2,6 +2,7 @@
 
 
 #include "ABGameState.h"
+#include "ABSaveGame.h"
 
 
 AABGameState::AABGameState()
@@ -20,3 +21,5 @@ void AABGameState::AddGameScore()
 {
 	TotalGameScore++;
 }
+
+
