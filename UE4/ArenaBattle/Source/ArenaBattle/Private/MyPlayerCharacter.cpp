@@ -16,6 +16,7 @@ AMyPlayerCharacter::AMyPlayerCharacter()
 	_initSkeletalMesh();
 	_initCamera();
 	_initCollision();
+	_initAnimation();
 }
 
 // Called when the game starts or when spawned
@@ -95,6 +96,10 @@ void AMyPlayerCharacter::_initSkeletalMesh() const
 	}
 }
 
+
+/**
+ * @brief 캐릭터의 충돌 관련하여 초기화한다.
+ */
 void AMyPlayerCharacter::_initCollision()
 {
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("NPC"));
@@ -104,10 +109,23 @@ void AMyPlayerCharacter::_initCollision()
 		GetCapsuleComponent()->SetCollisionProfileName(TEXT("MyPlayer"));
 	}
 
-
-	
-
 	//SetActorEnableCollision(false);
+}
+
+
+/**
+ * @brief 캐릭터의 애니메이션 관련하여 초기화한다. 
+ */
+void AMyPlayerCharacter::_initAnimation()
+{
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+	static ConstructorHelpers::FClassFinder<UAnimInstance> animBlueprint(TEXT
+		("AnimBlueprint'/Game/Animations/MyPlayerAnimBlueprint.MyPlayerAnimBlueprint_C'"));
+	if(animBlueprint.Succeeded())
+	{
+		GetMesh()->SetAnimInstanceClass(animBlueprint.Class);
+	}
 }
 
 
@@ -151,6 +169,7 @@ void AMyPlayerCharacter::_turn(const float NewAxisValue)
 {
 	AddControllerYawInput(NewAxisValue);
 }
+
 
 /**
  * @brief Actor와 상호작용하는 함수

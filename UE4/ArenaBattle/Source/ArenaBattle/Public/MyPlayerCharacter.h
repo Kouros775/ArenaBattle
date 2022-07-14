@@ -31,6 +31,7 @@ private:
 	void _initCamera();
 	void _initSkeletalMesh() const;
 	void _initCollision();
+	void _initAnimation();
 	// << 초기화 관련 함수
 	
 	// >> 키보드&마우스 이벤트를 통한 캐릭터의 움직임 함수
