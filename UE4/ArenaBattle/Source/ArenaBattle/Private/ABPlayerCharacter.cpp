@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ABCharacter.h"
+#include "ABPlayerCharacter.h"
 
 #include <memory>
 
@@ -13,17 +13,20 @@
 #include "ABCharacterSetting.h"
 #include "ABCharacterStatComponent.h"
 #include "Components/WidgetComponent.h"
-#include "DrawDebugHelpers.h"
 #include "ABPlayerController.h"
 #include "ABPlayerState.h"
 #include "ABHUDWidget.h"
+
 #include "ABGameMode.h"
+//#include "DrawDebugHelpers.h"
 
 
+
+#define ASSET_INDEX (1)
 /**
  * @brief 생성자
  */
-AABCharacter::AABCharacter()
+AABPlayerCharacter::AABPlayerCharacter()
 	: DirectionToMove(FVector::ZeroVector)
 	, ArmLengthTo(0.0f)
 	, ArmRotationTo(FRotator::ZeroRotator)
@@ -33,7 +36,6 @@ AABCharacter::AABCharacter()
 	, MaxCombo(4)
 	, AttackRange(80.0f)
 	, AttackRadius(50.0f)
-	, AssetIndex(4)
 	, DeadTimer(5.0f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -46,6 +48,7 @@ AABCharacter::AABCharacter()
 	
 	// >> Inti UI
 	_initUI();
+	HPBarWidget->SetHiddenInGame(true);
 	// << Inti UI
 
 	// >> Init Mesh
@@ -62,12 +65,9 @@ AABCharacter::AABCharacter()
 	// << Init Character Stat
 
 	// >> Init Physics
-	GetCapsuleComponent()->SetCollisionProfileName(TEXT("ABCharacter"));
+	_initPhysics();
 	// << Init Physics
 
-	// >> Init Controller
-	_initController();
-	// << Init Controller
 
 	
 	
@@ -82,22 +82,19 @@ AABCharacter::AABCharacter()
 	//		ABLOG(Warning, TEXT("Character Asset : %s"), *CharacterAsset.ToString());
 	//	}
 	//}
-
 	CharacterAssetToLoad = FSoftObjectPath(nullptr);
 	// << ArenaBattle Setting
 
 
 	// >> Preint state
 	SetActorHiddenInGame(true);
-	HPBarWidget->SetHiddenInGame(true);
-	//bCanBeDamaged = false;
 	SetCanBeDamaged(false);
 	// << Preint state
 }
 
 
 // Called when the game starts or when spawned
-void AABCharacter::BeginPlay()
+void AABPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -107,28 +104,15 @@ void AABCharacter::BeginPlay()
 		ABPlayerController = Cast<AABPlayerController>(GetController());
 		ABCHECK(ABPlayerController);
 	}
-	else
-	{
-		ABAIController = Cast<AABAIController>(GetController());
-		ABCHECK(ABAIController);
-	}
 
 	const auto DefaultSetting = GetDefault<UABCharacterSetting>();
 
-	if(bIsPlayer == true)
-	{
-		AssetIndex = 4;
-	}
-	else
-	{
-		AssetIndex = FMath::RandRange(0, DefaultSetting->CharacterAssets.Num() - 1);
-	}
-
-	CharacterAssetToLoad = DefaultSetting->CharacterAssets[AssetIndex];
+	
+	CharacterAssetToLoad = DefaultSetting->CharacterAssets[ASSET_INDEX];
 	const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
 	ABCHECK(ABGameInstance);
 	AssetStreamingHandle = ABGameInstance->StreamableManager.RequestAsyncLoad(CharacterAssetToLoad
-		, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
+		, FStreamableDelegate::CreateUObject(this, &AABPlayerCharacter::OnAssetLoadCompleted));
 	SetCharacterState(ECharacterState::Loading);
 }
 
@@ -137,7 +121,7 @@ void AABCharacter::BeginPlay()
  * @brief 카메라 시점 설정
  * @param ControlMode 카메라 시점
  */
-void AABCharacter::SetControlMode(const EControlMode& ControlMode)
+void AABPlayerCharacter::SetControlMode(const EControlMode& ControlMode)
 {
 	CurrentControlMode = ControlMode;
 	
@@ -175,18 +159,11 @@ void AABCharacter::SetControlMode(const EControlMode& ControlMode)
 		GetCharacterMovement()->bUseControllerDesiredRotation = true; // 컨트롤 회전이 가리키는 방향으로 캐릭터가 부드럽게 회전한다.
 		GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	}
-	else if(ControlMode == EControlMode::NPC)
-	{
-		bUseControllerRotationYaw = false;
-		GetCharacterMovement()->bUseControllerDesiredRotation = false;
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-		GetCharacterMovement()->RotationRate = FRotator(0.0f, 480.0f, 0.0f);
-	}
 }
 
 
 // Called every frame
-void AABCharacter::Tick(float DeltaTime)
+void AABPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -218,28 +195,28 @@ void AABCharacter::Tick(float DeltaTime)
 
 
 // Called to bind functionality to input
-void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AABPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction(TEXT("ViewChange"), EInputEvent::IE_Pressed, this, &AABCharacter::ViewChange);
+	PlayerInputComponent->BindAction(TEXT("ViewChange"), EInputEvent::IE_Pressed, this, &AABPlayerCharacter::ViewChange);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AABCharacter::Attack);
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AABPlayerCharacter::Attack);
 	
-	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AABCharacter::_upDown);
-	PlayerInputComponent->BindAxis(TEXT("LeftRight"), this, &AABCharacter::_leftRight);
-	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &AABCharacter::_lookUp);
-	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &AABCharacter::_turn);
+	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AABPlayerCharacter::_upDown);
+	PlayerInputComponent->BindAxis(TEXT("LeftRight"), this, &AABPlayerCharacter::_leftRight);
+	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &AABPlayerCharacter::_lookUp);
+	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &AABPlayerCharacter::_turn);
 }
 
 
-void AABCharacter::PostInitializeComponents()
+void AABPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
 	ABAnim = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
 	ABCHECK(nullptr != ABAnim);
-	ABAnim->OnMontageEnded.AddDynamic(this, &AABCharacter::OnAttackMontageEnded); // 애니메이션 몽타주 재생이 끝나면 호출되는 콜백함수.
+	ABAnim->OnMontageEnded.AddDynamic(this, &AABPlayerCharacter::OnAttackMontageEnded); // 애니메이션 몽타주 재생이 끝나면 호출되는 콜백함수.
 
 	ABAnim->OnNextAttackCheck.AddLambda([this]()->void
 	{
@@ -254,7 +231,7 @@ void AABCharacter::PostInitializeComponents()
 	});
 
 	// Attack시 Collision 확인.
-	ABAnim->OnAttackHitCheck.AddUObject(this, &AABCharacter::AttackCheck);
+	ABAnim->OnAttackHitCheck.AddUObject(this, &AABPlayerCharacter::AttackCheck);
 
 	// HP가 0일때 호출할 함수.
 	CharacterStat->OnHPIsZero.AddLambda([this]()->void
@@ -266,7 +243,7 @@ void AABCharacter::PostInitializeComponents()
 }
 
 
-void AABCharacter::PossessedBy(AController* NewController)
+void AABPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
@@ -291,23 +268,23 @@ void AABCharacter::PossessedBy(AController* NewController)
  * @param DamageCauser 데미지 전달을 위해 사용한 도구(현재 이 캐릭터가 도구가 된다.)
  * @return 실제 받은 데미지.
  */
-float AABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float AABPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	ABLOG(Warning, TEXT("Actor : %s took Damage : %f"), *GetName(), FinalDamage);
-
-	CharacterStat->SetDamage(FinalDamage);
-
-	if(CurrentState == ECharacterState::Dead)
-	{
-		if(EventInstigator->IsPlayerController())
-		{
-			auto PlayerController = Cast<AABPlayerController>(EventInstigator);
-			//ABCHECK(nullptr != PlayerController);
-			PlayerController->NPCKill(this);
-		}
-	}
+	//ABLOG(Warning, TEXT("Actor : %s took Damage : %f"), *GetName(), FinalDamage);
+	//
+	//CharacterStat->SetDamage(FinalDamage);
+	//
+	//if(CurrentState == ECharacterState::Dead)
+	//{
+	//	if(EventInstigator->IsPlayerController())
+	//	{
+	//		auto PlayerController = Cast<AABPlayerController>(EventInstigator);
+	//		//ABCHECK(nullptr != PlayerController);
+	//		PlayerController->NPCKill(this);
+	//	}
+	//}
 	
 	
 	return FinalDamage;
@@ -318,7 +295,7 @@ float AABCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
  * @brief 무기를 장착할 수 있는지에 대한 여부 반환
  * @return 무기장착가능 여부 true/false
  */
-bool AABCharacter::CanSetWeapon() const
+bool AABPlayerCharacter::CanSetWeapon() const
 {
 	//return (nullptr == CurrentWeapon);
 	return true;
@@ -329,7 +306,7 @@ bool AABCharacter::CanSetWeapon() const
  * @brief 캐릭터에 무기를 장착한다.
  * @param NewWeapon 장착하는 무기 
  */
-void AABCharacter::SetWeapon(AABWeapon* NewWeapon)
+void AABPlayerCharacter::SetWeapon(AABWeapon* NewWeapon)
 {
 	ABCHECK(nullptr != NewWeapon);
 	if(nullptr != CurrentWeapon)
@@ -355,7 +332,7 @@ void AABCharacter::SetWeapon(AABWeapon* NewWeapon)
  * @brief 모델의 Y축방향으로 이동
  * @param NewAxisValue 이동량
  */
-void AABCharacter::_upDown(const float NewAxisValue)
+void AABPlayerCharacter::_upDown(const float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -372,7 +349,7 @@ void AABCharacter::_upDown(const float NewAxisValue)
  * @brief 모델의 X축방향으로 이동
  * @param NewAxisValue 이동량
  */
-void AABCharacter::_leftRight(float NewAxisValue)
+void AABPlayerCharacter::_leftRight(float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -389,7 +366,7 @@ void AABCharacter::_leftRight(float NewAxisValue)
  * @brief 모델의 X축 회전 (모델의 Y축 방향)
  * @param NewAxisValue 이동량
  */
-void AABCharacter::_lookUp(float NewAxisValue)
+void AABPlayerCharacter::_lookUp(float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -404,7 +381,7 @@ void AABCharacter::_lookUp(float NewAxisValue)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// 모델의 Z축을 기준으로 모델을 회전.
-void AABCharacter::_turn(float NewAxisValue)
+void AABPlayerCharacter::_turn(float NewAxisValue)
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -419,7 +396,7 @@ void AABCharacter::_turn(float NewAxisValue)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// 카메라 시점 변경.
-void AABCharacter::ViewChange()
+void AABPlayerCharacter::ViewChange()
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -435,7 +412,7 @@ void AABCharacter::ViewChange()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// 공격.
-void AABCharacter::Attack()
+void AABPlayerCharacter::Attack()
 {
 	if(IsAttacking)
 	{
@@ -456,10 +433,15 @@ void AABCharacter::Attack()
 	}
 }
 
-void AABCharacter::SetCharacterState(const ECharacterState& NewState)
+
+/**
+ * @brief State를 설정한다
+ * @param paramState 설정할 State
+ */
+void AABPlayerCharacter::SetCharacterState(const ECharacterState& paramState)
 {
-	ABCHECK(CurrentState != NewState);
-	CurrentState = NewState;
+	ABCHECK(CurrentState != paramState);
+	CurrentState = paramState;
 
 	switch (CurrentState)
 	{
@@ -475,18 +457,9 @@ void AABCharacter::SetCharacterState(const ECharacterState& NewState)
 				ABCHECK(nullptr != ABPlayerState);
 				CharacterStat->SetNewLevel(ABPlayerState->GetCharacterLevel());
 			}
-			else
-			{
-				auto ABGameMode = Cast<AABGameMode>(GetWorld()->GetAuthGameMode());
-				ABCHECK(nullptr != ABGameMode);
-				int32 TargetLevel = FMath::CeilToInt((float)ABGameMode->GetScore() * 0.8f);
-				int32 FinalLevel = FMath::Clamp<int32>(TargetLevel, 1, 20);
-				ABLOG(Warning, TEXT("New NPC Level : %d"), FinalLevel);
-				CharacterStat->SetNewLevel(FinalLevel);
-			}
+			
 			SetActorHiddenInGame(true);
 			HPBarWidget->SetHiddenInGame(true);
-			//bCanBeDamaged = false;
 			SetCanBeDamaged(false);
 			break;
 		}
@@ -511,12 +484,6 @@ void AABCharacter::SetCharacterState(const ECharacterState& NewState)
 				GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 				EnableInput(ABPlayerController);
 			}
-			else
-			{
-				SetControlMode(EControlMode::NPC);
-				GetCharacterMovement()->MaxWalkSpeed = 400.0f;
-				ABAIController->RunAI();
-			}
 			break;
 		}
 	case ECharacterState::Dead:
@@ -531,20 +498,12 @@ void AABCharacter::SetCharacterState(const ECharacterState& NewState)
 			{
 				DisableInput(ABPlayerController);
 			}
-			else
-			{
-				ABAIController->StopAI();
-			}
 
 			GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([this]()->void
 			{
 				if(bIsPlayer)
 				{
 					ABPlayerController->RestartLevel();
-				}
-				else
-				{
-					Destroy();
 				}
 			}), DeadTimer, false);
 			break;
@@ -558,13 +517,13 @@ void AABCharacter::SetCharacterState(const ECharacterState& NewState)
 }
 
 
-ECharacterState AABCharacter::GetCharacterState() const
+ECharacterState AABPlayerCharacter::GetCharacterState() const
 {
 	return CurrentState;
 }
 
 
-void AABCharacter::AttackCheck()
+void AABPlayerCharacter::AttackCheck()
 {
 	float FinalAttackRange = GetFinalAttackRange();
 	
@@ -581,23 +540,23 @@ void AABCharacter::AttackCheck()
 		, Params
 	);
 
-#if ENABLE_DRAW_DEBUG
-	FVector TraceVec = GetActorForwardVector() * FinalAttackRange;
-	FVector Center = GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = FinalAttackRange * 0.5f + AttackRadius;
-	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
-	FColor DrawColor = bResult ? FColor::Red : FColor::Green;
-	float DebugLifeTime = 5.0f;
-
-	DrawDebugCapsule(GetWorld()
-		, Center
-		, HalfHeight
-		, AttackRadius
-		, CapsuleRot
-		, DrawColor
-		, false
-		, DebugLifeTime);
-#endif
+//#if ENABLE_DRAW_DEBUG
+//	FVector TraceVec = GetActorForwardVector() * FinalAttackRange;
+//	FVector Center = GetActorLocation() + TraceVec * 0.5f;
+//	float HalfHeight = FinalAttackRange * 0.5f + AttackRadius;
+//	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+//	FColor DrawColor = bResult ? FColor::Red : FColor::Green;
+//	float DebugLifeTime = 5.0f;
+//
+//	DrawDebugCapsule(GetWorld()
+//		, Center
+//		, HalfHeight
+//		, AttackRadius
+//		, CapsuleRot
+//		, DrawColor
+//		, false
+//		, DebugLifeTime);
+//#endif
 	
 
 	
@@ -614,7 +573,7 @@ void AABCharacter::AttackCheck()
 }
 
 
-void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void AABPlayerCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	ABCHECK(IsAttacking);
 	ABCHECK(CurrentCombo > 0);
@@ -624,7 +583,7 @@ void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted
 }
 
 
-void AABCharacter::AttackStartComboState()
+void AABPlayerCharacter::AttackStartComboState()
 {
 	CanNextCombo = true;
 	IsComboInputOn = false;
@@ -633,7 +592,7 @@ void AABCharacter::AttackStartComboState()
 }
 
 
-void AABCharacter::AttackEndComboState()
+void AABPlayerCharacter::AttackEndComboState()
 {
 	IsComboInputOn = false;
 	CanNextCombo = false;
@@ -641,7 +600,7 @@ void AABCharacter::AttackEndComboState()
 }
 
 
-void AABCharacter::OnAssetLoadCompleted()
+void AABPlayerCharacter::OnAssetLoadCompleted()
 {
 	USkeletalMesh* AssetLoaded = Cast<USkeletalMesh>(AssetStreamingHandle->GetLoadedAsset());
 	AssetStreamingHandle.Reset();
@@ -655,7 +614,7 @@ void AABCharacter::OnAssetLoadCompleted()
 /**
  * @brief 카메라 초기화.
  */
-void AABCharacter::_initCamera()
+void AABPlayerCharacter::_initCamera()
 {
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CAMERA"));
@@ -668,7 +627,7 @@ void AABCharacter::_initCamera()
 /**
  * @brief UI 초기화
  */
-void AABCharacter::_initUI()
+void AABPlayerCharacter::_initUI()
 {
 	HPBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBARWIDGET"));
 	HPBarWidget->SetupAttachment(GetMesh());
@@ -687,7 +646,7 @@ void AABCharacter::_initUI()
 /**
  * @brief Mesh 초기화
  */
-void AABCharacter::_initMesh()
+void AABPlayerCharacter::_initMesh()
 {
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
 
@@ -702,7 +661,7 @@ void AABCharacter::_initMesh()
 /**
  * @brief Animation 초기화
  */
-void AABCharacter::_initAnimation()
+void AABPlayerCharacter::_initAnimation()
 {
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
@@ -717,7 +676,7 @@ void AABCharacter::_initAnimation()
 /**
  * @brief Character 스탯 초기화
  */
-void AABCharacter::_initCharacterStat()
+void AABPlayerCharacter::_initCharacterStat()
 {
 	CharacterStat = CreateDefaultSubobject<UABCharacterStatComponent>(TEXT("CHARACTERSTAT"));
 	GetCharacterMovement()->JumpZVelocity = 400.0f;
@@ -727,35 +686,18 @@ void AABCharacter::_initCharacterStat()
 /**
  * @brief 물리관련(충돌 포함) 초기화
  */
-void AABCharacter::_initPhysics()
+void AABPlayerCharacter::_initPhysics()
 {
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("ABCharacter"));
 }
 
 
-/**
- * @brief 컨트롤러 초기화
- */
-void AABCharacter::_initController()
-{
-	if(IsPlayerControlled())
-	{
-		// nothing
-	}
-	else // ai
-	{
-		// 플레이어가 조종하는 캐릭터를 제외한 모든 캐릭터에 ai set
-		AIControllerClass = AABAIController::StaticClass();
-		AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	}
-}
-
-
-int32 AABCharacter::GetExp() const
+int32 AABPlayerCharacter::GetExp() const
 {
 	return CharacterStat->GetDropExp();
 }
 
-float AABCharacter::GetFinalAttackRange() const
+float AABPlayerCharacter::GetFinalAttackRange() const
 {
 	float attackRange;
 
@@ -769,7 +711,7 @@ float AABCharacter::GetFinalAttackRange() const
 	return attackRange;
 }
 
-float AABCharacter::GetFinalAttackDamage() const
+float AABPlayerCharacter::GetFinalAttackDamage() const
 {
 	float rtn = 0.0f;
 

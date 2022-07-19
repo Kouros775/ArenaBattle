@@ -12,7 +12,8 @@ DECLARE_LOG_CATEGORY_EXTERN(ArenaBattle, Log, All);
 #define ABCHECK(Expr, ...) {if(!(Expr)) { ABLOG(Error, TEXT("ASSERTION : %s"), TEXT("'"#Expr"'")); return __VA_ARGS__;}}
 
 
-UENUM(BlueprintType)
+
+UENUM(BlueprintType) // 블루프린트에서도 사용하기 위함
 enum class ECharacterState : uint8
 {
 	Preint // 캐릭터 생성 전의 스테이트, 

@@ -23,11 +23,12 @@ public:
 	AABPlayerState();
 
 	int32 GetGameScore() const;
+	int32 GetGameHighScore() const;
+	
 	int32 GetCharacterLevel() const;
 
 
 	
-	int32 GetGameHighScore() const;
 
 	float GetExpRatio() const;
 	bool AddExp(const int32& IncomeExp);

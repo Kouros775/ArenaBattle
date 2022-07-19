@@ -33,6 +33,7 @@ int32 AABPlayerState::GetGameHighScore() const
 	return GameHighScore;
 }
 
+
 float AABPlayerState::GetExpRatio() const
 {
 	if(CurrentStatData->NextExp <= KINDA_SMALL_NUMBER)
@@ -57,7 +58,8 @@ bool AABPlayerState::AddExp(const int32& IncomeExp)
 		if(Exp >= CurrentStatData->NextExp)
 		{
 			Exp = Exp - CurrentStatData->NextExp;
-			SetCharacterLevel(CharacterLevel + 1);
+			SetCharacterLevel(CharacterLevel);
+			CharacterLevel++;
 			DidLevelUp = true;
 		}
 
@@ -82,6 +84,8 @@ void AABPlayerState::AddGameScore()
 
 void AABPlayerState::SetCharacterLevel(const int32& NewCharacterLevel)
 {
+	auto gameInstance = GetGameInstance();
+	
 	const auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
 	ABCHECK(nullptr != ABGameInstance);
 

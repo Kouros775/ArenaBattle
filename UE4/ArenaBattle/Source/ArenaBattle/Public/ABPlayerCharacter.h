@@ -3,14 +3,16 @@
 #pragma once
 
 #include "ArenaBattle.h"
-#include "ABAIController.h"
+
 #include "ABPlayerController.h"
+
 #include "Components/WidgetComponent.h"
-
 #include "Engine/StreamableManager.h"
-#include "GameFramework/Character.h"
 
-#include "ABCharacter.generated.h"
+#include "GameFramework/Character.h"
+#include "ABPlayerCharacter.generated.h"
+
+
 
 
 class AABWeapon;
@@ -23,7 +25,7 @@ DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
 
 
 UCLASS()
-class ARENABATTLE_API AABCharacter : public ACharacter
+class ARENABATTLE_API AABPlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -36,7 +38,7 @@ public:
 	};
 
 	// Sets default values for this character's properties
-	AABCharacter();
+	AABPlayerCharacter();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -59,7 +61,7 @@ public:
 	float GetFinalAttackDamage() const;
 
 	
-	void SetCharacterState(const ECharacterState& NewState);
+	void SetCharacterState(const ECharacterState& paramState);
 	ECharacterState GetCharacterState() const;
 	
 protected:
@@ -93,7 +95,6 @@ private:
 	void _initAnimation();
 	void _initCharacterStat();
 	void _initPhysics();
-	void _initController();
 	// << Init
 
 	
@@ -153,16 +154,12 @@ protected:
 	TSharedPtr<FStreamableHandle> AssetStreamingHandle;
 
 
-	int32 AssetIndex;
 
 	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
 	ECharacterState CurrentState;
 
 	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
 	bool bIsPlayer;
-
-	UPROPERTY()
-	AABAIController* ABAIController;
 
 	UPROPERTY()
 	AABPlayerController* ABPlayerController;
