@@ -8,7 +8,6 @@
 #include "ABWeapon.h"
 #include "ABGameInstance.h"
 #include "ABAnimInstance.h"
-#include "ABAIController.h"
 #include "ABCharacterWidget.h"
 #include "ABCharacterSetting.h"
 #include "ABCharacterStatComponent.h"
@@ -98,12 +97,6 @@ void AABPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	bIsPlayer = IsPlayerControlled();
-	if(bIsPlayer == true)
-	{
-		ABPlayerController = Cast<AABPlayerController>(GetController());
-		ABCHECK(ABPlayerController);
-	}
 
 	const auto DefaultSetting = GetDefault<UABCharacterSetting>();
 
@@ -199,7 +192,7 @@ void AABPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction(TEXT("ViewChange"), EInputEvent::IE_Pressed, this, &AABPlayerCharacter::ViewChange);
+	PlayerInputComponent->BindAction(TEXT("ViewChange"), EInputEvent::IE_Pressed, this, &AABPlayerCharacter::_viewChange);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AABPlayerCharacter::Attack);
 	
@@ -231,7 +224,7 @@ void AABPlayerCharacter::PostInitializeComponents()
 	});
 
 	// Attack시 Collision 확인.
-	ABAnim->OnAttackHitCheck.AddUObject(this, &AABPlayerCharacter::AttackCheck);
+	ABAnim->OnAttackHitCheck.AddUObject(this, &AABPlayerCharacter::_attackCheck);
 
 	// HP가 0일때 호출할 함수.
 	CharacterStat->OnHPIsZero.AddLambda([this]()->void
@@ -396,7 +389,7 @@ void AABPlayerCharacter::_turn(float NewAxisValue)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// 카메라 시점 변경.
-void AABPlayerCharacter::ViewChange()
+void AABPlayerCharacter::_viewChange()
 {
 	if(CurrentControlMode == EControlMode::GTA)
 	{
@@ -447,16 +440,14 @@ void AABPlayerCharacter::SetCharacterState(const ECharacterState& paramState)
 	{
 	case ECharacterState::Loading:
 		{
-			if(bIsPlayer)
-			{
-				DisableInput(ABPlayerController);
+			DisableInput(_getPlayerController());
 
-				ABPlayerController->GetHUDWidget()->BindCharacterStat(CharacterStat);
+			_getPlayerController()->GetHUDWidget()->BindCharacterStat(CharacterStat);
 				
-				const auto ABPlayerState = Cast<AABPlayerState>(GetPlayerState());
-				ABCHECK(nullptr != ABPlayerState);
-				CharacterStat->SetNewLevel(ABPlayerState->GetCharacterLevel());
-			}
+			const auto ABPlayerState = Cast<AABPlayerState>(GetPlayerState());
+			ABCHECK(nullptr != ABPlayerState);
+			CharacterStat->SetNewLevel(ABPlayerState->GetCharacterLevel());
+
 			
 			SetActorHiddenInGame(true);
 			HPBarWidget->SetHiddenInGame(true);
@@ -478,12 +469,11 @@ void AABPlayerCharacter::SetCharacterState(const ECharacterState& paramState)
 			ABCHECK(nullptr != CharacterWidget);
 			CharacterWidget->BindCharacterStat(CharacterStat);
 			
-			if(bIsPlayer)
-			{
-				SetControlMode(EControlMode::DIABLO);
-				GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-				EnableInput(ABPlayerController);
-			}
+			
+			SetControlMode(EControlMode::DIABLO);
+			GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+			EnableInput(_getPlayerController());
+			
 			break;
 		}
 	case ECharacterState::Dead:
@@ -494,17 +484,12 @@ void AABPlayerCharacter::SetCharacterState(const ECharacterState& paramState)
 			ABAnim->SetDeadAnim();
 			SetCanBeDamaged(false);
 
-			if(bIsPlayer)
-			{
-				DisableInput(ABPlayerController);
-			}
+			
+			DisableInput(_getPlayerController());
 
 			GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([this]()->void
 			{
-				if(bIsPlayer)
-				{
-					ABPlayerController->RestartLevel();
-				}
+				_getPlayerController()->RestartLevel();
 			}), DeadTimer, false);
 			break;
 		}
@@ -523,7 +508,7 @@ ECharacterState AABPlayerCharacter::GetCharacterState() const
 }
 
 
-void AABPlayerCharacter::AttackCheck()
+void AABPlayerCharacter::_attackCheck()
 {
 	float FinalAttackRange = GetFinalAttackRange();
 	
@@ -689,6 +674,16 @@ void AABPlayerCharacter::_initCharacterStat()
 void AABPlayerCharacter::_initPhysics()
 {
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("ABCharacter"));
+}
+
+
+/**
+ * @brief PlayerController 반환
+ * @return AABPlayerController
+ */
+AABPlayerController* AABPlayerCharacter::_getPlayerController() const
+{
+	return Cast<AABPlayerController>(GetController());
 }
 
 

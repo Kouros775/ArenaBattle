@@ -3,8 +3,11 @@
 
 #include "BTDecorator_IsInAttackRange.h"
 #include "ABAIController.h"
-#include "ABCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
+
+//#include "ABCharacter.h"
+#include "ABPlayerCharacter.h"
+#include "ABEnemyCharacter.h"
 
 
 UBTDecorator_IsInAttackRange::UBTDecorator_IsInAttackRange()
@@ -18,14 +21,14 @@ bool UBTDecorator_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeCompo
 {
 	bool bResult = Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
 
-	const auto ControllingPawn = Cast<AABCharacter>(OwnerComp.GetAIOwner()->GetPawn());
+	const auto ControllingPawn = Cast<AABEnemyCharacter>(OwnerComp.GetAIOwner()->GetPawn());
 	if(ControllingPawn == nullptr)
 	{
 		return false;
 	}
 	else
 	{
-		const auto Target = Cast<AABCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AABAIController::TargetKey));
+		const auto Target = Cast<AABPlayerCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AABAIController::TargetKey));
 		if(Target == nullptr)
 		{
 			return false;

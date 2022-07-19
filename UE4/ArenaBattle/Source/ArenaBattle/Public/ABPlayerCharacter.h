@@ -18,7 +18,6 @@
 class AABWeapon;
 class UABAnimInstance;
 class UABCharacterStatComponent;
-class AABPlayerController;
 
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
@@ -76,8 +75,8 @@ private:
 	void _lookUp(float NewAxisValue);
 	void _turn(float NewAxisValue);
 	
-	void ViewChange();
-	void AttackCheck();
+	void _viewChange();
+	void _attackCheck();
 	
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
@@ -97,6 +96,7 @@ private:
 	void _initPhysics();
 	// << Init
 
+	AABPlayerController* _getPlayerController() const;
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// variables
@@ -158,11 +158,6 @@ protected:
 	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
 	ECharacterState CurrentState;
 
-	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
-	bool bIsPlayer;
-
-	UPROPERTY()
-	AABPlayerController* ABPlayerController;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=State, meta=(AllowPrivateAccess=true))
 	float DeadTimer;

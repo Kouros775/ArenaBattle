@@ -2,11 +2,12 @@
 
 
 #include "ABSection.h"
-#include "ABCharacter.h"
 #include "ABItemBox.h"
 #include "ABPlayerController.h"
 #include "ABGameMode.h"
 
+//#include "ABCharacter.h"
+#include "ABEnemyCharacter.h"
 
 // Sets default values
 AABSection::AABSection()
@@ -207,7 +208,7 @@ void AABSection::OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 void AABSection::OnNPCSpawn()
 {
 	GetWorld()->GetTimerManager().ClearTimer(SpawnNPCTimerHandle);
-	auto KeyNPC = GetWorld()->SpawnActor<AABCharacter>(GetActorLocation() + FVector::UpVector * 88.0f, FRotator::ZeroRotator);
+	auto KeyNPC = GetWorld()->SpawnActor<AABEnemyCharacter>(GetActorLocation() + FVector::UpVector * 88.0f, FRotator::ZeroRotator);
 
 	if(KeyNPC)
 	{
@@ -218,10 +219,10 @@ void AABSection::OnNPCSpawn()
 
 void AABSection::OnKeyNPCDestroyed(AActor* DestroyedActor)
 {
-	const auto ABCharacter = Cast<AABCharacter>(DestroyedActor);
-	ABCHECK(nullptr != ABCharacter);
+	const auto ABEnemy = Cast<AABEnemyCharacter>(DestroyedActor);
+	ABCHECK(nullptr != ABEnemy);
 
-	const auto ABPlayerController = Cast<AABPlayerController>(ABCharacter->LastHitBy);
+	const auto ABPlayerController = Cast<AABPlayerController>(ABEnemy->LastHitBy);
 	ABCHECK(nullptr != ABPlayerController);
 
 	auto ABGameMode = Cast<AABGameMode>(GetWorld()->GetAuthGameMode());

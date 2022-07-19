@@ -3,9 +3,13 @@
 
 #include "BTService_Detect.h"
 #include "ABAIController.h"
-#include "ABCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "DrawDebugHelpers.h"
+
+//#include "DrawDebugHelpers.h"
+
+//#include "ABCharacter.h"
+#include "ABPlayerCharacter.h"
+#include "ABEnemyCharacter.h"
 
 
 UBTService_Detect::UBTService_Detect()
@@ -52,21 +56,22 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 			{
 				for (auto const& OverlapResult : OverlapResults)
 				{
-					AABCharacter* ABCharacter = Cast<AABCharacter>(OverlapResult.GetActor());
+					AABPlayerCharacter* ABCharacter = Cast<AABPlayerCharacter>(OverlapResult.GetActor());
 					if (ABCharacter && ABCharacter->GetController()->IsPlayerController())
 					{
 						OwnerComp.GetBlackboardComponent()->SetValueAsObject(AABAIController::TargetKey, ABCharacter);
-						DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Green, false, 0.2f);
 
-						DrawDebugPoint(World, ABCharacter->GetActorLocation(), 10.0f, FColor::Blue, false, 0.2f);
-						DrawDebugLine(World, ControllingPawn->GetActorLocation(), ABCharacter->GetActorLocation(), FColor::Blue, false, 0.27f);
+						//DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Green, false, 0.2f);
+						//DrawDebugPoint(World, ABCharacter->GetActorLocation(), 10.0f, FColor::Blue, false, 0.2f);
+						//DrawDebugLine(World, ControllingPawn->GetActorLocation(), ABCharacter->GetActorLocation(), FColor::Blue, false, 0.27f);
+						
 						return;
 					}
 				}
 			}
 
 			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AABAIController::TargetKey, nullptr);
-			DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Red, false, 0.2f);
+			//DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Red, false, 0.2f);
 		}
 	}
 }

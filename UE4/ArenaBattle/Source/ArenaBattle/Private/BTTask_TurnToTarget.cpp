@@ -3,8 +3,11 @@
 
 #include "BTTask_TurnToTarget.h"
 #include "ABAIController.h"
-#include "ABCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
+
+//#include "ABCharacter.h"
+#include "ABPlayerCharacter.h"
+#include "ABEnemyCharacter.h"
 
 
 UBTTask_TurnToTarget::UBTTask_TurnToTarget()
@@ -17,7 +20,7 @@ EBTNodeResult::Type UBTTask_TurnToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 	
-	auto ABCharacter = Cast<AABCharacter>(OwnerComp.GetAIOwner()->GetPawn());
+	auto ABCharacter = Cast<AABEnemyCharacter>(OwnerComp.GetAIOwner()->GetPawn());
 
 	if(ABCharacter == nullptr)
 	{
@@ -25,7 +28,7 @@ EBTNodeResult::Type UBTTask_TurnToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 	}
 	else
 	{
-		auto Target = Cast<AABCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AABAIController::TargetKey));
+		auto Target = Cast<AABPlayerCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AABAIController::TargetKey));
 
 		if(Target == nullptr)
 		{

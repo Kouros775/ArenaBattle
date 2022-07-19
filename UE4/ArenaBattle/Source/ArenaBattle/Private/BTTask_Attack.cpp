@@ -3,8 +3,10 @@
 
 #include "BTTask_Attack.h"
 #include "ABAIController.h"
-#include "ABCharacter.h"
 
+//#include "ABCharacter.h"
+#include "ABPlayerCharacter.h"
+#include "ABEnemyCharacter.h"
 
 UBTTask_Attack::UBTTask_Attack()
 	: IsAttacking(false)
@@ -17,7 +19,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	auto ABCharacter = Cast<AABCharacter>(OwnerComp.GetAIOwner()->GetPawn());
+	auto ABCharacter = Cast<AABEnemyCharacter>(OwnerComp.GetAIOwner()->GetPawn());
 	if(ABCharacter == nullptr)
 	{
 		return EBTNodeResult::Failed;

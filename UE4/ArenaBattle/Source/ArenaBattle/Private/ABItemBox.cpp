@@ -3,7 +3,8 @@
 
 #include "ABItemBox.h"
 #include "ABWeapon.h"
-#include "ABCharacter.h"
+#include "ABPlayerCharacter.h"
+//#include "ABCharacter.h"
 
 
 // Sets default values
@@ -67,15 +68,15 @@ void AABItemBox::OnCharacterOverLap(UPrimitiveComponent* OverlappedComp, AActor*
 {
 	ABLOG_S(Warning);
 
-	const auto ABCharacter = Cast<AABCharacter>(OtherActor);
-	ABCHECK(ABCharacter);
+	const auto PlayerCharacter = Cast<AABPlayerCharacter>(OtherActor);
+	ABCHECK(PlayerCharacter);
 
-	if(ABCharacter && WeaponItemClass)
+	if(PlayerCharacter && WeaponItemClass)
 	{
-		if(ABCharacter->CanSetWeapon() == true)
+		if(PlayerCharacter->CanSetWeapon() == true)
 		{
 			const auto NewWeapon = GetWorld()->SpawnActor<AABWeapon>(WeaponItemClass, FVector::ZeroVector, FRotator::ZeroRotator);
-			ABCharacter->SetWeapon(NewWeapon);
+			PlayerCharacter->SetWeapon(NewWeapon);
 
 			Effect->Activate(true);
 			Box->SetHiddenInGame(true, true);
@@ -85,7 +86,7 @@ void AABItemBox::OnCharacterOverLap(UPrimitiveComponent* OverlappedComp, AActor*
 	}
 	else
 	{
-		ABLOG(Warning, TEXT("%s can't equip weapon currently"), *ABCharacter->GetName());
+		ABLOG(Warning, TEXT("%s can't equip weapon currently"), *PlayerCharacter->GetName());
 	}
 }
 
