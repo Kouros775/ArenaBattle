@@ -4,7 +4,6 @@
 
 #include "ArenaBattle.h"
 
-#include "ABPlayerController.h"
 
 #include "Components/WidgetComponent.h"
 #include "Engine/StreamableManager.h"
@@ -18,6 +17,7 @@
 class AABWeapon;
 class UABAnimInstance;
 class UABCharacterStatComponent;
+class AABPlayerController;
 
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);

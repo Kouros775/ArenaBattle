@@ -15,6 +15,7 @@
 #include "ABPlayerController.h"
 #include "ABPlayerState.h"
 #include "ABHUDWidget.h"
+#include "ABPlayerController.h"
 
 #include "ABGameMode.h"
 //#include "DrawDebugHelpers.h"
@@ -590,7 +591,7 @@ void AABPlayerCharacter::OnAssetLoadCompleted()
 	USkeletalMesh* AssetLoaded = Cast<USkeletalMesh>(AssetStreamingHandle->GetLoadedAsset());
 	AssetStreamingHandle.Reset();
 	ABCHECK(AssetLoaded != nullptr);
-	GetMesh()->SetSkeletalMesh(AssetLoaded);
+	//GetMesh()->SetSkeletalMesh(AssetLoaded);
 
 	SetCharacterState(ECharacterState::Ready);
 }
